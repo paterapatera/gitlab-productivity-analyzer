@@ -4,6 +4,8 @@
 
 **SPA アーキテクチャ**: Laravel をバックエンド API として、Inertia.js で React フロントエンドと統合。ページ遷移は Inertia.js が管理し、従来の SPA のような体験を提供。
 
+**バックエンドアーキテクチャ**: クリーンアーキテクチャに基づいて設計。プレゼンテーション層（`/app/Presentation/`）、アプリケーション層（`/app/Application/`）、ドメイン層（`/app/Domain/`）、インフラストラクチャ層（`/app/Infrastructure/`）を明確に分離し、依存関係の方向を制御することで、テスタビリティと保守性を向上。
+
 **SSR 対応**: Vite の SSR ビルド設定により、サーバーサイドレンダリングが可能。
 
 ## Core Technologies
@@ -30,9 +32,10 @@
 ## Development Standards
 
 ### Type Safety
-- TypeScript strict mode 有効
+- TypeScript strict mode 有効（`tsconfig.json`）
 - `noImplicitAny` 有効
 - 型定義は `resources/js/types/` に配置
+- `@/` パスエイリアスで `resources/js/` にマッピング
 
 ### Code Quality
 - **ESLint**: React Hooks、TypeScript ルール
@@ -73,6 +76,7 @@ npm run lint
 
 ## Key Technical Decisions
 
+- **クリーンアーキテクチャ採用**: バックエンドはクリーンアーキテクチャで実装。プレゼンテーション層（`/app/Presentation/`）、アプリケーション層（`/app/Application/`）、ドメイン層（`/app/Domain/`）、インフラストラクチャ層（`/app/Infrastructure/`）を分離し、依存関係の逆転原則を適用
 - **Inertia.js 採用**: 従来の API 開発を避け、Laravel のルーティングと React を直接統合
 - **TypeScript 厳格モード**: 型安全性を最優先
 - **Radix UI**: アクセシビリティとカスタマイズ性を両立
