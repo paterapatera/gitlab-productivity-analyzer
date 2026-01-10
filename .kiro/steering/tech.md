@@ -46,6 +46,7 @@
 - **Pest**: PHP テストフレームワーク
 - **Laravel Testing**: Feature/Unit テスト構造
 - **Vitest**: フロントエンドテストフレームワーク（React Testing Library 統合）
+- **Storybook**: コンポーネント開発とドキュメント化（`stories/` ディレクトリ）
 
 ## Development Environment
 
@@ -76,7 +77,7 @@ npm run lint
 
 ## Key Technical Decisions
 
-- **クリーンアーキテクチャ採用**: バックエンドはクリーンアーキテクチャで実装。プレゼンテーション層（`/app/Presentation/`）、アプリケーション層（`/app/Application/`）、ドメイン層（`/app/Domain/`）、インフラストラクチャ層（`/app/Infrastructure/`）を分離し、依存関係の逆転原則を適用
+- **クリーンアーキテクチャ + Hexagonal Architecture**: バックエンドはクリーンアーキテクチャで実装。プレゼンテーション層（`/app/Presentation/`）、アプリケーション層（`/app/Application/`）、ドメイン層（`/app/Domain/`）、インフラストラクチャ層（`/app/Infrastructure/`）を分離し、依存関係の逆転原則を適用。Ports and Adapters パターン（`/app/Application/Port/`）により外部システムとの結合を疎結合化
 - **Inertia.js 採用**: 従来の API 開発を避け、Laravel のルーティングと React を直接統合
 - **TypeScript 厳格モード**: 型安全性を最優先
 - **Radix UI**: アクセシビリティとカスタマイズ性を両立
@@ -84,6 +85,7 @@ npm run lint
 - **React 19**: 最新の React 機能を活用
 - **Vite**: 高速な開発体験とビルド
 - **Vitest**: フロントエンドテストに Vitest を採用（React Testing Library と統合）
+- **Storybook**: UI コンポーネントの開発とドキュメント化を支援
 
 ---
 _標準とパターンを記述。すべての依存関係を列挙するものではない_

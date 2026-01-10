@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'gitlab' => [
+        'base_url' => env('GITLAB_BASE_URL'),
+        'token' => env('GITLAB_TOKEN'),
+    ],
+
 ];

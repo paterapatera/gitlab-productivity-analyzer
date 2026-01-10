@@ -21,9 +21,25 @@
 **Purpose**: アプリケーション層。ユースケース、アプリケーションサービス、DTO  
 **Pattern**: ドメイン層に依存し、インフラストラクチャ層に依存しない
 
+**Location**: `/app/Application/Service/`  
+**Purpose**: アプリケーションサービスの実体  
+**Pattern**: サービスの実装クラス
+
+**Location**: `/app/Application/Contract/`  
+**Purpose**: アプリケーションサービスのインターフェース  
+**Pattern**: サービスインターフェースの定義。アプリケーション層のユースケースを表現
+
+**Location**: `/app/Application/Port/`  
+**Purpose**: 外部システムとのインターフェース（Ports and Adapters パターン）  
+**Pattern**: データアクセス（リポジトリ）や外部API（GitLab API等）とのインターフェース。インフラストラクチャ層が実装
+
 **Location**: `/app/Infrastructure/`  
 **Purpose**: インフラストラクチャ層。リポジトリ実装、外部サービス統合、データアクセス  
-**Pattern**: アプリケーション層のインターフェースを実装
+**Pattern**: アプリケーション層のインターフェース（Port、Contract）を実装
+
+**Location**: `/app/Infrastructure/Repositories/`  
+**Purpose**: リポジトリ実装とEloquentモデル  
+**Pattern**: `EloquentProjectRepository` が `ProjectRepository` Port を実装。Eloquentモデルは `Repositories/Eloquent/` に配置
 
 **Location**: `/app/Presentation/`  
 **Purpose**: プレゼンテーション層。コントローラー、HTTP リクエストの処理、Inertia.js レスポンス、リクエスト/レスポンスの変換  
@@ -58,16 +74,22 @@
 **Purpose**: フロントエンドテストファイル（Vitest + React Testing Library）  
 **Example**: `test/setup.ts`, `test/vitest.d.ts`
 
+**Location**: `/resources/js/components/ui/`  
+**Purpose**: デザインシステムのプリミティブコンポーネント（Radix UI ベース）  
+**Pattern**: スタイルのみの再利用可能な UI プリミティブ  
+**Example**: `components/ui/button.tsx`, `components/ui/table.tsx`
+
+**Location**: `/stories/`  
+**Purpose**: Storybook ストーリーファイル。ページコンポーネントの開発とドキュメント化  
+**Pattern**: ページ構造と対応（`stories/Project/Index.stories.tsx` は `pages/Project/Index.tsx` に対応）。モックは `stories/mocks/` に配置  
+**Example**: `stories/Project/Index.stories.tsx`, `stories/mocks/inertia.tsx`
+
 ### 推奨パターン（将来の拡張）
 以下のディレクトリ構造は、プロジェクトの成長に合わせて推奨されるパターンです：
 
 **Location**: `/resources/js/components/`  
 **Purpose**: 再利用可能な React コンポーネント  
 **Pattern**: ビジネスロジックを含むコンポーネント
-
-**Location**: `/resources/js/components/ui/`  
-**Purpose**: デザインシステムのプリミティブコンポーネント（Radix UI ベース）  
-**Pattern**: スタイルのみの再利用可能な UI プリミティブ
 
 **Location**: `/resources/js/layouts/`  
 **Purpose**: ページレイアウトコンポーネント  
@@ -108,16 +130,22 @@ import { LocalComponent } from './local-component';
   - **アプリケーション層**（`/app/Application/`）: ユースケース、ビジネスロジックのオーケストレーション、ドメイン層の利用
   - **ドメイン層**（`/app/Domain/`）: エンティティ、値オブジェクト、純粋なビジネスロジック、フレームワーク非依存
   - **インフラストラクチャ層**（`/app/Infrastructure/`）: リポジトリ実装、データアクセス実装、外部サービス統合
-- **依存関係の逆転**: アプリケーション層が定義するインターフェース（例: リポジトリインターフェース）を、インフラストラクチャ層が実装
+- **依存関係の逆転**: アプリケーション層が定義するインターフェース（Port、Contract）を、インフラストラクチャ層やサービス実装が実装
+- **Port と Contract の分離**: 
+  - **Port** (`/app/Application/Port/`): 外部システム（データベース、外部API）とのインターフェース。インフラストラクチャ層が実装
+  - **Contract** (`/app/Application/Contract/`): アプリケーションサービスのインターフェース。アプリケーション層のユースケースを定義。サービス実装（`/app/Application/Service/`）が実装
+- **サービス層の分離**: サービスインターフェース（`/app/Application/Contract/`）とサービス実装（`/app/Application/Service/`）を分離し、依存関係の逆転を実現
 - **コントローラーの薄さ**: コントローラー（`/app/Presentation/`）は HTTP リクエストの処理とユースケースの呼び出しのみ。ビジネスロジックは含まない
-- **リポジトリパターン**: データアクセスはリポジトリインターフェース（`/app/Application/`）を通じて行い、実装はインフラストラクチャ層（`/app/Infrastructure/`）に配置
+- **リポジトリパターン**: データアクセスはリポジトリインターフェース（`/app/Application/Port/ProjectRepository`）を通じて行い、実装はインフラストラクチャ層（`/app/Infrastructure/Repositories/`）に配置
 
 ### Frontend
 - **ページ = Inertia コンポーネント**: 各ページは Inertia.js のページコンポーネントとして実装（`resources/js/pages/`）
 - **型安全性**: すべての props とデータ構造に型を定義（`resources/js/types/`）
 - **ユーティリティの集約**: 共通関数は `lib/` に配置（例: `lib/utils.ts`）
 - **テスト分離**: フロントエンドテストは `resources/js/test/` に配置
-- **将来の拡張**: コンポーネント、レイアウト、フックは必要に応じて追加（推奨パターン参照）
+- **UI コンポーネント**: デザインシステムのプリミティブは `components/ui/` に配置（Radix UI ベース）
+- **Storybook**: ページコンポーネントの開発とドキュメント化は `stories/` に配置。ページ構造と対応するパターン
+- **将来の拡張**: ビジネスロジックを含むコンポーネント、レイアウト、フックは必要に応じて追加（推奨パターン参照）
 
 ---
 _パターンを記述。ファイルツリーを列挙するものではない。既存のパターンに従う新しいファイルは更新不要_
