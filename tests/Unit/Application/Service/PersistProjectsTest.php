@@ -3,8 +3,17 @@
 use App\Application\Port\ProjectRepository;
 use App\Application\Service\PersistProjects;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 describe('PersistProjectsの機能', function () {
+    beforeEach(function () {
+        // DBファサードをモック
+        DB::shouldReceive('transaction')
+            ->andReturnUsing(function ($callback) {
+                return $callback();
+            });
+    });
+
     test('リポジトリのsaveManyメソッドを呼び出す', function () {
         $projects = collect([
             createProject(1, 'group/project1'),
