@@ -1,8 +1,5 @@
-import { Head, useForm } from '@inertiajs/react';
-import { RefreshCwIcon, AlertCircleIcon, CheckCircle2Icon } from 'lucide-react';
-import { ProjectPageProps } from '@/types/project';
-import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import {
     Table,
     TableBody,
@@ -11,6 +8,9 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { ProjectPageProps } from '@/types/project';
+import { Head, useForm } from '@inertiajs/react';
+import { AlertCircleIcon, CheckCircle2Icon, RefreshCwIcon } from 'lucide-react';
 
 export default function Index({ projects, error, success }: ProjectPageProps) {
     const { post, processing } = useForm({});
@@ -23,7 +23,7 @@ export default function Index({ projects, error, success }: ProjectPageProps) {
         <>
             <Head title="プロジェクト一覧" />
             <div className="container mx-auto px-4 py-8">
-                <div className="flex justify-between items-center mb-6">
+                <div className="mb-6 flex items-center justify-between">
                     <h1 className="text-2xl font-bold">プロジェクト一覧</h1>
                     <Button
                         onClick={handleSync}
@@ -61,8 +61,10 @@ export default function Index({ projects, error, success }: ProjectPageProps) {
                 )}
 
                 {projects.length === 0 ? (
-                    <div className="text-center py-12">
-                        <p className="text-muted-foreground">プロジェクトが存在しません</p>
+                    <div className="py-12 text-center">
+                        <p className="text-muted-foreground">
+                            プロジェクトが存在しません
+                        </p>
                     </div>
                 ) : (
                     <div className="rounded-md border">
@@ -81,7 +83,9 @@ export default function Index({ projects, error, success }: ProjectPageProps) {
                                         <TableCell className="font-medium">
                                             {project.id}
                                         </TableCell>
-                                        <TableCell>{project.name_with_namespace}</TableCell>
+                                        <TableCell>
+                                            {project.name_with_namespace}
+                                        </TableCell>
                                         <TableCell className="text-muted-foreground">
                                             {project.description || '-'}
                                         </TableCell>

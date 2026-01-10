@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class ProjectEloquentModel extends Model
 {
     use SoftDeletes;
+
     /**
      * テーブル名
      */

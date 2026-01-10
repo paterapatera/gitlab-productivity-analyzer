@@ -6,8 +6,7 @@ readonly class ProjectDescription
 {
     public function __construct(
         public ?string $value
-    ) {
-    }
+    ) {}
 
     public function equals(self $other): bool
     {

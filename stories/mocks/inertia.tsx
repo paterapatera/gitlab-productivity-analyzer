@@ -6,7 +6,7 @@ let globalProcessing = false;
 const processingCallbacks: Set<(value: boolean) => void> = new Set();
 
 // Inertia.jsのモック実装
-export const useForm = (initialData: Record<string, any> = {}) => {
+export const useForm = (initialData: Record<string, unknown> = {}) => {
     const [processing, setProcessing] = React.useState(globalProcessing);
 
     React.useEffect(() => {
@@ -17,7 +17,7 @@ export const useForm = (initialData: Record<string, any> = {}) => {
         };
     }, []);
 
-    const post = (url: string, options?: any) => {
+    const post = (url: string, options?: { onSuccess?: () => void }) => {
         // ストーリーで処理状態を確認できるように、少し遅延させる
         processingCallbacks.forEach((cb) => cb(true));
         setTimeout(() => {

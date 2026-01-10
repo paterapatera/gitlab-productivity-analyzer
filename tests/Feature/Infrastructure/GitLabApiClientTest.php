@@ -29,7 +29,6 @@ describe('GitLabApiClientクラス', function () {
         expect($projects[0]->nameWithNamespace->value)->toBe('group/project');
     });
 
-
     test('fromConfig()で設定ファイルからインスタンスを作成できる', function () {
         config(['services.gitlab.base_url' => 'https://gitlab.example.com']);
         config(['services.gitlab.token' => 'env-token']);

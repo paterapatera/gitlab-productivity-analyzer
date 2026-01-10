@@ -58,5 +58,4 @@ return [
         // Authentication providers removed - authentication features are disabled
     ],
 
-
 ];

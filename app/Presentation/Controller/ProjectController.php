@@ -29,7 +29,7 @@ class ProjectController
             $response = new ListResponse($projects);
 
             $props = $response->toArray();
-            
+
             // フラッシュメッセージをpropsに追加
             if ($httpRequest->session()->has('error')) {
                 $props['error'] = $httpRequest->session()->get('error');

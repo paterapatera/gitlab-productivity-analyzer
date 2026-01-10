@@ -17,17 +17,11 @@ interface ProjectRepository
 
     /**
      * プロジェクトIDでプロジェクトを取得
-     *
-     * @param  ProjectId  $projectId
-     * @return Project|null
      */
     public function findByProjectId(ProjectId $projectId): ?Project;
 
     /**
      * プロジェクトを保存または更新
-     *
-     * @param  Project  $project
-     * @return Project
      */
     public function save(Project $project): Project;
 
@@ -35,15 +29,11 @@ interface ProjectRepository
      * 複数のプロジェクトを一括保存または更新
      *
      * @param  Collection<int, Project>  $projects
-     * @return void
      */
     public function saveMany(Collection $projects): void;
 
     /**
      * プロジェクトを削除
-     *
-     * @param  Project  $project
-     * @return void
      */
     public function delete(Project $project): void;
 

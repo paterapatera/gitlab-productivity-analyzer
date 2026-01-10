@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('name_with_namespace', 500);
             $table->string('default_branch', 255)->nullable();
             $table->timestamp('deleted_at')->nullable();
-            
+
             $table->index('deleted_at');
         });
     }

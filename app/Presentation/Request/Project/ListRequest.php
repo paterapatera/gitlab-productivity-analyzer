@@ -8,8 +8,7 @@ class ListRequest
 {
     public function __construct(
         private readonly Request $request
-    ) {
-    }
+    ) {}
 
     /**
      * HTTPリクエストを取得

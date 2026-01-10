@@ -223,6 +223,56 @@ TypeScript の型チェック：
 npm run types
 ```
 
+### Push前チェック
+
+GitHub Actions と同じチェックを push 前に実行できます。すべてのチェックを一括実行：
+
+```bash
+npm run pre-push
+```
+
+このコマンドは以下を実行します：
+1. PHP コードスタイルチェック（Pint）
+2. フロントエンドフォーマットチェック（Prettier）
+3. フロントエンドリントチェック（ESLint）
+4. TypeScript 型チェック
+5. アセットビルドチェック
+6. PHP ユニットテスト
+
+#### 個別のチェック
+
+各チェックを個別に実行することもできます：
+
+```bash
+# PHP コードスタイルチェック
+npm run check:php
+
+# フロントエンドフォーマットチェック
+npm run check:format
+
+# フロントエンドリントチェック
+npm run check:lint
+
+# TypeScript 型チェック
+npm run check:types
+
+# アセットビルドチェック
+npm run check:build
+
+# PHP ユニットテスト
+npm run check:php-tests
+```
+
+#### Git Pre-Push フック
+
+Git の pre-push フックが設定されており、`git push` を実行すると自動的にすべてのチェックが実行されます。チェックに失敗した場合、push は中断されます。
+
+フックをスキップする場合（非推奨）：
+
+```bash
+git push --no-verify
+```
+
 ## プロジェクト構造
 
 ### バックエンド（クリーンアーキテクチャ）

@@ -4,7 +4,7 @@ export default function ExamplePage() {
     return (
         <>
             <Head title="Example" />
-            <div className="bg-white dark:bg-white min-h-screen" />
+            <div className="min-h-screen bg-white dark:bg-white" />
         </>
     );
 }

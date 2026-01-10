@@ -1,7 +1,7 @@
+import Index from '@/pages/Project/Index';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import Index from '@/pages/Project/Index';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Inertia.jsのモック
 vi.mock('@inertiajs/react', () => ({
@@ -46,13 +46,17 @@ describe('Project/Index', () => {
     it('空のプロジェクト一覧の場合、空状態メッセージを表示する', () => {
         render(<Index projects={[]} />);
 
-        expect(screen.getByText(/プロジェクトが存在しません/i)).toBeInTheDocument();
+        expect(
+            screen.getByText(/プロジェクトが存在しません/i),
+        ).toBeInTheDocument();
     });
 
     it('同期ボタンを表示する', () => {
         render(<Index projects={[]} />);
 
-        expect(screen.getByRole('button', { name: /同期/i })).toBeInTheDocument();
+        expect(
+            screen.getByRole('button', { name: /同期/i }),
+        ).toBeInTheDocument();
     });
 
     it('同期ボタンをクリックすると同期リクエストを送信する', async () => {
@@ -63,7 +67,27 @@ describe('Project/Index', () => {
             post: mockPost,
             processing: false,
             errors: {},
-        } as any);
+            data: {},
+            setData: vi.fn(),
+            reset: vi.fn(),
+            clearErrors: vi.fn(),
+            setError: vi.fn(),
+            submit: vi.fn(),
+            get: vi.fn(),
+            put: vi.fn(),
+            patch: vi.fn(),
+            delete: vi.fn(),
+            cancel: vi.fn(),
+            isDirty: false,
+            hasErrors: false,
+            progress: undefined,
+            wasSuccessful: false,
+            recentlySuccessful: false,
+            transform: vi.fn(),
+            resetOnError: vi.fn(),
+            resetOnSuccess: vi.fn(),
+            setDefaultsOnSuccess: vi.fn(),
+        } as unknown as ReturnType<typeof useForm>);
 
         render(<Index projects={[]} />);
 
@@ -73,13 +97,33 @@ describe('Project/Index', () => {
         expect(mockPost).toHaveBeenCalledWith('/projects/sync');
     });
 
-    it('同期処理中はローディング状態を表示する', () => {
-        const { useForm } = require('@inertiajs/react');
+    it('同期処理中はローディング状態を表示する', async () => {
+        const { useForm } = await import('@inertiajs/react');
         vi.mocked(useForm).mockReturnValue({
             post: vi.fn(),
             processing: true,
             errors: {},
-        } as any);
+            data: {},
+            setData: vi.fn(),
+            reset: vi.fn(),
+            clearErrors: vi.fn(),
+            setError: vi.fn(),
+            submit: vi.fn(),
+            get: vi.fn(),
+            put: vi.fn(),
+            patch: vi.fn(),
+            delete: vi.fn(),
+            cancel: vi.fn(),
+            isDirty: false,
+            hasErrors: false,
+            progress: undefined,
+            wasSuccessful: false,
+            recentlySuccessful: false,
+            transform: vi.fn(),
+            resetOnError: vi.fn(),
+            resetOnSuccess: vi.fn(),
+            setDefaultsOnSuccess: vi.fn(),
+        } as unknown as ReturnType<typeof useForm>);
 
         render(<Index projects={[]} />);
 
@@ -87,9 +131,13 @@ describe('Project/Index', () => {
     });
 
     it('エラーメッセージがある場合、エラー状態を表示する', () => {
-        render(<Index projects={[]} error="GitLab APIへの接続に失敗しました。" />);
+        render(
+            <Index projects={[]} error="GitLab APIへの接続に失敗しました。" />,
+        );
 
-        expect(screen.getByText(/GitLab APIへの接続に失敗しました。/i)).toBeInTheDocument();
+        expect(
+            screen.getByText(/GitLab APIへの接続に失敗しました。/i),
+        ).toBeInTheDocument();
     });
 
     it('成功メッセージがある場合、成功状態を表示する', () => {

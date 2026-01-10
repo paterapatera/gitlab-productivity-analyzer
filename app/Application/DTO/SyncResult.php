@@ -9,6 +9,5 @@ readonly class SyncResult
         public int $deletedCount,
         public bool $hasErrors = false,
         public ?string $errorMessage = null
-    ) {
-    }
+    ) {}
 }

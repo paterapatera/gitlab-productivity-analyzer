@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import React from 'react';
 import Index from '@/pages/Project/Index';
-import { ProjectPageProps } from '@/types/project';
 import { setProcessing } from '../mocks/inertia';
 
 const meta = {

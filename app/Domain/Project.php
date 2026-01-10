@@ -14,8 +14,7 @@ readonly class Project
         public ProjectNameWithNamespace $nameWithNamespace,
         public ProjectDescription $description = new ProjectDescription(null),
         public DefaultBranch $defaultBranch = new DefaultBranch(null)
-    ) {
-    }
+    ) {}
 
     public function equals(self $other): bool
     {

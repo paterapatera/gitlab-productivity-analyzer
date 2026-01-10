@@ -4,6 +4,4 @@ namespace App\Infrastructure\GitLab\Exceptions;
 
 use Exception;
 
-class GitLabApiException extends Exception
-{
-}
+class GitLabApiException extends Exception {}
