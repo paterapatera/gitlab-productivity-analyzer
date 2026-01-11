@@ -4,7 +4,15 @@ namespace App\Infrastructure\Repositories\Eloquent;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property int $id
+ * @property string|null $description
+ * @property string $name_with_namespace
+ * @property string|null $default_branch
+ * @property Carbon|null $deleted_at
+ */
 class ProjectEloquentModel extends Model
 {
     use SoftDeletes;

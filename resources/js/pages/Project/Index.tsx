@@ -1,5 +1,6 @@
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
+import { FlashMessage } from '@/components/common/FlashMessage';
+import { LoadingButton } from '@/components/common/LoadingButton';
+import { PageLayout } from '@/components/common/PageLayout';
 import {
     Table,
     TableBody,
@@ -10,7 +11,7 @@ import {
 } from '@/components/ui/table';
 import { ProjectPageProps } from '@/types/project';
 import { Head, useForm } from '@inertiajs/react';
-import { AlertCircleIcon, CheckCircle2Icon, RefreshCwIcon } from 'lucide-react';
+import { RefreshCwIcon } from 'lucide-react';
 
 export default function Index({ projects, error, success }: ProjectPageProps) {
     const { post, processing } = useForm({});
@@ -22,43 +23,21 @@ export default function Index({ projects, error, success }: ProjectPageProps) {
     return (
         <>
             <Head title="プロジェクト一覧" />
-            <div className="container mx-auto px-4 py-8">
-                <div className="mb-6 flex items-center justify-between">
-                    <h1 className="text-2xl font-bold">プロジェクト一覧</h1>
-                    <Button
+            <PageLayout
+                title="プロジェクト一覧"
+                headerAction={
+                    <LoadingButton
                         onClick={handleSync}
-                        disabled={processing}
+                        loading={processing}
+                        loadingText="同期中..."
                         variant="default"
                     >
-                        {processing ? (
-                            <>
-                                <RefreshCwIcon className="animate-spin" />
-                                同期中...
-                            </>
-                        ) : (
-                            <>
-                                <RefreshCwIcon />
-                                同期
-                            </>
-                        )}
-                    </Button>
-                </div>
-
-                {error && (
-                    <Alert variant="destructive" className="mb-4">
-                        <AlertCircleIcon />
-                        <AlertTitle>エラー</AlertTitle>
-                        <AlertDescription>{error}</AlertDescription>
-                    </Alert>
-                )}
-
-                {success && (
-                    <Alert className="mb-4">
-                        <CheckCircle2Icon />
-                        <AlertTitle>成功</AlertTitle>
-                        <AlertDescription>{success}</AlertDescription>
-                    </Alert>
-                )}
+                        <RefreshCwIcon />
+                        同期
+                    </LoadingButton>
+                }
+            >
+                <FlashMessage error={error} success={success} />
 
                 {projects.length === 0 ? (
                     <div className="py-12 text-center">
@@ -98,7 +77,7 @@ export default function Index({ projects, error, success }: ProjectPageProps) {
                         </Table>
                     </div>
                 )}
-            </div>
+            </PageLayout>
         </>
     );
 }

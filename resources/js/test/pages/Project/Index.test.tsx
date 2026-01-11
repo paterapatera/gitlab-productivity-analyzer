@@ -2,14 +2,12 @@ import Index from '@/pages/Project/Index';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { createMockProject } from '../../helpers/data';
+import { createMockUseForm } from '../../mocks/inertia';
 
-// Inertia.jsのモック
+// Inertia.js のモック
 vi.mock('@inertiajs/react', () => ({
-    useForm: vi.fn(() => ({
-        post: vi.fn(),
-        processing: false,
-        errors: {},
-    })),
+    useForm: vi.fn(() => createMockUseForm()),
     router: {
         post: vi.fn(),
     },
@@ -23,18 +21,18 @@ describe('Project/Index', () => {
 
     it('プロジェクト一覧を表示する', () => {
         const projects = [
-            {
+            createMockProject({
                 id: 1,
                 name_with_namespace: 'group/project1',
                 description: 'Description 1',
                 default_branch: 'main',
-            },
-            {
+            }),
+            createMockProject({
                 id: 2,
                 name_with_namespace: 'group/project2',
                 description: 'Description 2',
                 default_branch: 'develop',
-            },
+            }),
         ];
 
         render(<Index projects={projects} />);
@@ -63,31 +61,11 @@ describe('Project/Index', () => {
         const user = userEvent.setup();
         const { useForm } = await import('@inertiajs/react');
         const mockPost = vi.fn();
-        vi.mocked(useForm).mockReturnValue({
-            post: mockPost,
-            processing: false,
-            errors: {},
-            data: {},
-            setData: vi.fn(),
-            reset: vi.fn(),
-            clearErrors: vi.fn(),
-            setError: vi.fn(),
-            submit: vi.fn(),
-            get: vi.fn(),
-            put: vi.fn(),
-            patch: vi.fn(),
-            delete: vi.fn(),
-            cancel: vi.fn(),
-            isDirty: false,
-            hasErrors: false,
-            progress: undefined,
-            wasSuccessful: false,
-            recentlySuccessful: false,
-            transform: vi.fn(),
-            resetOnError: vi.fn(),
-            resetOnSuccess: vi.fn(),
-            setDefaultsOnSuccess: vi.fn(),
-        } as unknown as ReturnType<typeof useForm>);
+        vi.mocked(useForm).mockReturnValue(
+            createMockUseForm({ post: mockPost }) as unknown as ReturnType<
+                typeof useForm
+            >,
+        );
 
         render(<Index projects={[]} />);
 
@@ -99,31 +77,11 @@ describe('Project/Index', () => {
 
     it('同期処理中はローディング状態を表示する', async () => {
         const { useForm } = await import('@inertiajs/react');
-        vi.mocked(useForm).mockReturnValue({
-            post: vi.fn(),
-            processing: true,
-            errors: {},
-            data: {},
-            setData: vi.fn(),
-            reset: vi.fn(),
-            clearErrors: vi.fn(),
-            setError: vi.fn(),
-            submit: vi.fn(),
-            get: vi.fn(),
-            put: vi.fn(),
-            patch: vi.fn(),
-            delete: vi.fn(),
-            cancel: vi.fn(),
-            isDirty: false,
-            hasErrors: false,
-            progress: undefined,
-            wasSuccessful: false,
-            recentlySuccessful: false,
-            transform: vi.fn(),
-            resetOnError: vi.fn(),
-            resetOnSuccess: vi.fn(),
-            setDefaultsOnSuccess: vi.fn(),
-        } as unknown as ReturnType<typeof useForm>);
+        vi.mocked(useForm).mockReturnValue(
+            createMockUseForm({ processing: true }) as unknown as ReturnType<
+                typeof useForm
+            >,
+        );
 
         render(<Index projects={[]} />);
 

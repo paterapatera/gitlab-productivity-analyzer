@@ -8,12 +8,12 @@ use App\Domain\ValueObjects\ProjectDescription;
 use App\Domain\ValueObjects\ProjectId;
 use App\Domain\ValueObjects\ProjectNameWithNamespace;
 use App\Infrastructure\GitLab\Exceptions\GitLabApiException;
-use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Http;
 
 trait FetchesProjects
 {
+    use HandlesGitLabApiRequests;
+
     /**
      * GitLab APIから全プロジェクトを取得
      *
@@ -28,37 +28,22 @@ trait FetchesProjects
         $totalPages = 1;
 
         do {
-            try {
-                $response = $this->fetchProjectsPage($page);
+            $response = $this->fetchProjectsPage($page);
 
-                if ($response->successful()) {
-                    /** @var array<int, array<string, mixed>> $projectDataArray */
-                    $projectDataArray = $response->json();
-                    $projects = collect($projectDataArray)
-                        ->map($this->convertToProject(...));
-                    $allProjects = $allProjects->concat($projects);
+            if ($response->successful()) {
+                /** @var array<int, array<string, mixed>> $projectDataArray */
+                $projectDataArray = $response->json();
+                $projects = collect($projectDataArray)
+                    ->map($this->convertToProject(...));
+                $allProjects = $allProjects->concat($projects);
 
-                    $totalPages = (int) $response->header('X-Total-Pages') ?: 1;
-                    $page++;
-                } elseif ($response->status() === 429) {
-                    // レート制限エラー: 指数バックオフでリトライ
-                    $retryAfter = (int) $response->header('Retry-After') ?: 1;
-                    $delay = min($retryAfter * (2 ** ($page - 1)), 60); // 最大60秒
-                    sleep($delay);
-
-                    // 同じページを再試行
-                    continue;
-                } else {
-                    throw new GitLabApiException(
-                        "GitLab API error: {$response->status()} - {$response->body()}"
-                    );
-                }
-            } catch (ConnectionException $e) {
-                throw new GitLabApiException(
-                    "GitLab API connection error: {$e->getMessage()}",
-                    0,
-                    $e
-                );
+                $totalPages = (int) $response->header('X-Total-Pages') ?: 1;
+                $page++;
+            } elseif ($this->handleRateLimit($response, $page)) {
+                // レート制限エラー: 同じページを再試行
+                continue;
+            } else {
+                $this->checkApiError($response);
             }
         } while ($page <= $totalPages);
 
@@ -72,22 +57,10 @@ trait FetchesProjects
      */
     protected function fetchProjectsPage(int $page): \Illuminate\Http\Client\Response
     {
-        $baseUrl = $this->getGitLabBaseUrl();
-        $token = $this->getGitLabToken();
-
-        /** @var \Illuminate\Http\Client\Response $response */
-        $response = Http::withHeaders([
-            'PRIVATE-TOKEN' => $token,
-        ])->get("{$baseUrl}/api/v4/projects", [
+        return $this->makeGitLabRequest('get', '/api/v4/projects', [
             'page' => $page,
             'per_page' => 100,
         ]);
-
-        if ($response->status() === 401) {
-            throw new GitLabApiException('GitLab API authentication failed');
-        }
-
-        return $response;
     }
 
     /**
@@ -104,14 +77,4 @@ trait FetchesProjects
             defaultBranch: new DefaultBranch($projectData['default_branch'] ?? null)
         );
     }
-
-    /**
-     * GitLab APIのベースURLを取得
-     */
-    abstract protected function getGitLabBaseUrl(): string;
-
-    /**
-     * GitLab APIの認証トークンを取得
-     */
-    abstract protected function getGitLabToken(): string;
 }

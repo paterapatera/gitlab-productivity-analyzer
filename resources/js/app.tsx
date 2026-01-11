@@ -4,11 +4,10 @@ import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+import { createPageTitle } from './lib/inertia-config';
 
 createInertiaApp({
-    title: (title) => (title ? `${title} - ${appName}` : appName),
+    title: createPageTitle,
     resolve: (name) =>
         resolvePageComponent(
             `./pages/${name}.tsx`,

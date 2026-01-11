@@ -78,6 +78,7 @@ npm run lint
 ## Key Technical Decisions
 
 - **クリーンアーキテクチャ + Hexagonal Architecture**: バックエンドはクリーンアーキテクチャで実装。プレゼンテーション層（`/app/Presentation/`）、アプリケーション層（`/app/Application/`）、ドメイン層（`/app/Domain/`）、インフラストラクチャ層（`/app/Infrastructure/`）を分離し、依存関係の逆転原則を適用。Ports and Adapters パターン（`/app/Application/Port/`）により外部システムとの結合を疎結合化
+- **BaseService パターン**: トランザクション管理が必要なアプリケーションサービスは `BaseService` を継承し、`transaction()` メソッドと `handleErrors()` メソッドを利用。トランザクションが不要なサービス（例: `GetProjects`）は直接インターフェースを実装
 - **Inertia.js 採用**: 従来の API 開発を避け、Laravel のルーティングと React を直接統合
 - **TypeScript 厳格モード**: 型安全性を最優先
 - **Radix UI**: アクセシビリティとカスタマイズ性を両立

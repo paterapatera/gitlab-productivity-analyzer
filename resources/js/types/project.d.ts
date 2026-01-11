@@ -1,3 +1,5 @@
+import { BasePageProps } from './common';
+
 export interface Project {
     id: number;
     name_with_namespace: string;
@@ -5,8 +7,6 @@ export interface Project {
     default_branch: string | null;
 }
 
-export interface ProjectPageProps {
+export interface ProjectPageProps extends BasePageProps {
     projects: Project[];
-    error?: string;
-    success?: string;
 }

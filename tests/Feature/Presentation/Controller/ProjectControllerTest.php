@@ -5,25 +5,15 @@ use App\Application\Contract\SyncProjects;
 use App\Application\Port\ProjectRepository;
 use Inertia\Testing\AssertableInertia as Assert;
 
-// テストヘルパー関数
-function getRepository(): ProjectRepository
-{
-    return app(ProjectRepository::class);
-}
-
-function mockSyncProjects(): void
-{
-    $mockSyncProjects = Mockery::mock(SyncProjects::class);
-    app()->instance(SyncProjects::class, $mockSyncProjects);
-}
-
 describe('ProjectController', function () {
     describe('index()メソッド', function () {
         beforeEach(function () {
-            mockSyncProjects();
+            $mockSyncProjects = Mockery::mock(SyncProjects::class);
+            app()->instance(SyncProjects::class, $mockSyncProjects);
         });
+
         test('プロジェクト一覧を取得してInertia.jsページを返却する', function () {
-            $repository = getRepository();
+            $repository = getProjectRepository();
             $repository->save(createProject(1, 'group/project1'));
             $repository->save(createProject(2, 'group/project2'));
 
@@ -77,7 +67,7 @@ describe('ProjectController', function () {
 
             app()->instance(GetProjects::class, $mockGetProjects);
 
-            $repository = getRepository();
+            $repository = getProjectRepository();
             $repository->save(createProject(3, 'group/project3'));
 
             $response = $this->post('/projects/sync');

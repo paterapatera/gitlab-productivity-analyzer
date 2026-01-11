@@ -4,12 +4,9 @@ namespace App\Domain\ValueObjects;
 
 readonly class ProjectDescription
 {
+    use ComparesValue;
+
     public function __construct(
         public ?string $value
     ) {}
-
-    public function equals(self $other): bool
-    {
-        return $this->value === $other->value;
-    }
 }

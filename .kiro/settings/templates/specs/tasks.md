@@ -16,6 +16,24 @@ Use whichever pattern fits the work breakdown:
   - {{DETAIL_ITEM_2}}
   - _Requirements: {{REQUIREMENT_IDS}}_ *(IDs only; do not add descriptions or parentheses.)*
 
+### Final Documentation & Validation Section (Required)
+Always include as the final major task group:
+- [ ] {{FINAL_NUMBER}}. ドキュメント更新と最終確認
+- [ ] {{FINAL_NUMBER}}.1 README.mdを更新する
+  - 新機能の説明を追加する
+  - 使用方法や設定方法を記載する
+  - 既存のREADME.mdの構造に従う
+
+- [ ] {{FINAL_NUMBER}}.2 AGENTS.mdを更新する
+  - 実装した機能に関する情報を追加する
+  - 開発ガイドラインやパターンを更新する
+  - 既存のAGENTS.mdの構造に従う
+
+- [ ] {{FINAL_NUMBER}}.3 最終確認として`npm run pre-push`を実行する
+  - コード品質チェック（lint、型チェック等）を実施する
+  - すべてのチェックが通過することを確認する
+  - 問題がある場合は修正してから再実行する
+
 > **Parallel marker**: Append ` (P)` only to tasks that can be executed in parallel. Omit the marker when running in `--sequential` mode.
 >
 > **Optional test coverage**: When a sub-task is deferrable test work tied to acceptance criteria, mark the checkbox as `- [ ]*` and explain the referenced requirements in the detail bullets.

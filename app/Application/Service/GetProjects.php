@@ -8,6 +8,11 @@ use App\Domain\Project;
 use App\Infrastructure\GitLab\Exceptions\GitLabApiException;
 use Illuminate\Support\Collection;
 
+/**
+ * 外部APIからプロジェクトを取得するサービス
+ *
+ * このサービスはトランザクションを使用しないため、BaseServiceを継承しません。
+ */
 class GetProjects implements GetProjectsInterface
 {
     public function __construct(

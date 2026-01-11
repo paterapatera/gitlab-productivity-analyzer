@@ -1,15 +1,9 @@
 <?php
 
-use App\Application\Port\ProjectRepository;
 use App\Domain\Project;
 use App\Domain\ValueObjects\ProjectId;
 use App\Infrastructure\Repositories\EloquentProjectRepository;
 use Illuminate\Support\Collection;
-
-test('EloquentProjectRepositoryはProjectRepositoryインターフェースを実装している', function () {
-    $repository = new EloquentProjectRepository;
-    expect($repository)->toBeInstanceOf(ProjectRepository::class);
-});
 
 describe('findAll()メソッド', function () {
     test('全プロジェクトを取得できる', function () {

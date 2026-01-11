@@ -6,6 +6,9 @@ use App\Domain\Project;
 use App\Infrastructure\GitLab\Exceptions\GitLabApiException;
 use Illuminate\Support\Collection;
 
+/**
+ * 外部APIからプロジェクトを取得する契約
+ */
 interface GetProjects
 {
     /**

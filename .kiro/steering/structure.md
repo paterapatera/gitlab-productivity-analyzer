@@ -23,7 +23,7 @@
 
 **Location**: `/app/Application/Service/`  
 **Purpose**: アプリケーションサービスの実体  
-**Pattern**: サービスの実装クラス
+**Pattern**: サービスの実装クラス。トランザクション管理が必要なサービスは `BaseService` を継承し、`transaction()` メソッドと `handleErrors()` メソッドを利用。トランザクションが不要なサービス（例: `GetProjects`）は直接インターフェースを実装
 
 **Location**: `/app/Application/Contract/`  
 **Purpose**: アプリケーションサービスのインターフェース  
@@ -60,7 +60,7 @@
 ### Frontend (React/TypeScript)
 **Location**: `/resources/js/pages/`  
 **Purpose**: Inertia.js ページコンポーネント。機能ごとにサブディレクトリで整理  
-**Example**: `pages/example.tsx`, `pages/settings/appearance.tsx` (将来の構造)
+**Example**: `pages/Project/Index.tsx`, `pages/Commit/Index.tsx`, `pages/example.tsx`
 
 **Location**: `/resources/js/lib/`  
 **Purpose**: ユーティリティ関数  
@@ -79,6 +79,11 @@
 **Pattern**: スタイルのみの再利用可能な UI プリミティブ  
 **Example**: `components/ui/button.tsx`, `components/ui/table.tsx`
 
+**Location**: `/resources/js/components/common/`  
+**Purpose**: 共通のビジネスロジックを含むコンポーネント  
+**Pattern**: 複数のページで再利用されるコンポーネント（FlashMessage、LoadingButton、PageLayout など）  
+**Example**: `components/common/FlashMessage.tsx`, `components/common/PageLayout.tsx`
+
 **Location**: `/stories/`  
 **Purpose**: Storybook ストーリーファイル。ページコンポーネントの開発とドキュメント化  
 **Pattern**: ページ構造と対応（`stories/Project/Index.stories.tsx` は `pages/Project/Index.tsx` に対応）。モックは `stories/mocks/` に配置  
@@ -86,10 +91,6 @@
 
 ### 推奨パターン（将来の拡張）
 以下のディレクトリ構造は、プロジェクトの成長に合わせて推奨されるパターンです：
-
-**Location**: `/resources/js/components/`  
-**Purpose**: 再利用可能な React コンポーネント  
-**Pattern**: ビジネスロジックを含むコンポーネント
 
 **Location**: `/resources/js/layouts/`  
 **Purpose**: ページレイアウトコンポーネント  
@@ -135,6 +136,7 @@ import { LocalComponent } from './local-component';
   - **Port** (`/app/Application/Port/`): 外部システム（データベース、外部API）とのインターフェース。インフラストラクチャ層が実装
   - **Contract** (`/app/Application/Contract/`): アプリケーションサービスのインターフェース。アプリケーション層のユースケースを定義。サービス実装（`/app/Application/Service/`）が実装
 - **サービス層の分離**: サービスインターフェース（`/app/Application/Contract/`）とサービス実装（`/app/Application/Service/`）を分離し、依存関係の逆転を実現
+- **BaseService パターン**: すべてのアプリケーションサービスは `BaseService` を継承し、トランザクション管理（`transaction()` メソッド）とエラーハンドリングの統一パターンを利用
 - **コントローラーの薄さ**: コントローラー（`/app/Presentation/`）は HTTP リクエストの処理とユースケースの呼び出しのみ。ビジネスロジックは含まない
 - **リポジトリパターン**: データアクセスはリポジトリインターフェース（`/app/Application/Port/ProjectRepository`）を通じて行い、実装はインフラストラクチャ層（`/app/Infrastructure/Repositories/`）に配置
 

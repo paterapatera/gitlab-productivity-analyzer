@@ -59,9 +59,16 @@ Focus on capabilities and outcomes, not code structure.
 
 **Exclude**:
 - Deployment tasks
-- Documentation tasks
 - User testing
 - Marketing/business activities
+
+**Exception - Final Documentation & Validation**:
+- **MUST include** a final section for documentation updates and validation:
+  - README.md update task
+  - AGENTS.md update task
+  - `npm run pre-push` execution task
+- These tasks should be placed at the end of the task list as the final major task group
+- Format: Create a major task (e.g., "N. ドキュメント更新と最終確認") with sub-tasks for each documentation/validation item
 
 ### Optional Test Coverage Tasks
 

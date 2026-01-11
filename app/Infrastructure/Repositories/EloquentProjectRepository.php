@@ -13,6 +13,9 @@ use Illuminate\Support\Collection;
 
 class EloquentProjectRepository implements ProjectRepository
 {
+    /** @use ConvertsBetweenEntityAndModel<Project, ProjectEloquentModel> */
+    use ConvertsBetweenEntityAndModel;
+
     /**
      * 全プロジェクトを取得
      *
@@ -39,17 +42,7 @@ class EloquentProjectRepository implements ProjectRepository
      */
     public function save(Project $project): Project
     {
-        $model = ProjectEloquentModel::find($project->id->value);
-
-        if ($model === null) {
-            $model = new ProjectEloquentModel;
-            $model->id = $project->id->value;
-        }
-
-        $this->updateModelFromEntity($model, $project);
-        $model->save();
-
-        return $this->toEntity($model);
+        return $this->saveEntity($project);
     }
 
     /**
@@ -59,7 +52,7 @@ class EloquentProjectRepository implements ProjectRepository
      */
     public function saveMany(Collection $projects): void
     {
-        $projects->each($this->save(...));
+        $this->saveManyEntities($projects);
     }
 
     /**
@@ -95,10 +88,30 @@ class EloquentProjectRepository implements ProjectRepository
     }
 
     /**
+     * エンティティに対応するEloquentモデルを検索
+     */
+    protected function findModel($entity)
+    {
+        return ProjectEloquentModel::find($entity->id->value);
+    }
+
+    /**
+     * エンティティから新しいEloquentモデルを作成
+     */
+    protected function createModel($entity)
+    {
+        $model = new ProjectEloquentModel;
+        $model->id = $entity->id->value;
+
+        return $model;
+    }
+
+    /**
      * EloquentモデルをProjectエンティティに変換
      */
-    private function toEntity(ProjectEloquentModel $model): Project
+    protected function toEntity($model)
     {
+        /** @var ProjectEloquentModel $model */
         return new Project(
             id: new ProjectId($model->id),
             nameWithNamespace: new ProjectNameWithNamespace($model->name_with_namespace),
@@ -110,11 +123,12 @@ class EloquentProjectRepository implements ProjectRepository
     /**
      * ProjectエンティティからEloquentモデルを更新
      */
-    private function updateModelFromEntity(ProjectEloquentModel $model, Project $project): void
+    protected function updateModelFromEntity($model, $entity): void
     {
-        $model->name_with_namespace = $project->nameWithNamespace->value;
-        $model->description = $project->description->value;
-        $model->default_branch = $project->defaultBranch->value;
+        /** @var ProjectEloquentModel $model */
+        $model->name_with_namespace = $entity->nameWithNamespace->value;
+        $model->description = $entity->description->value;
+        $model->default_branch = $entity->defaultBranch->value;
         $model->deleted_at = null;
     }
 }

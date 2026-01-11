@@ -1,24 +1,27 @@
 # Product Overview
 
-Laravel + React (Inertia.js) ベースの Web アプリケーションスターターキット。モダンなフロントエンドとバックエンドの統合を提供する基盤アプリケーション。
+バージョン管理サービス（GitLab）の生産分析ツール。Laravel 12 + React 19 + Inertia.js 2.x ベースで、リポジトリ情報の管理と分析を提供します。
 
 ## Core Capabilities
 
-- **最小限のスターターキット**: Inertia.js と React の統合が完了した状態から開発を開始可能
+- **プロジェクト管理**: GitLab API からプロジェクト一覧を取得し、データベースに永続化
+- **コミット収集**: 指定されたプロジェクトとブランチのコミット情報を収集・分析
+- **クリーンアーキテクチャ**: ドメイン層、アプリケーション層、インフラストラクチャ層、プレゼンテーション層を明確に分離
 - **型安全な開発環境**: TypeScript strict mode による型安全性
-- **モダンな開発ツール**: Vite、ESLint、Prettier による開発体験の最適化
+- **モダンな開発ツール**: Vite、ESLint、Prettier、Storybook による開発体験の最適化
 
 ## Target Use Cases
 
-- Inertia.js を使用した SPA 体験を提供する Laravel アプリケーションの基盤として利用
-- モダンな UI コンポーネントライブラリを活用した Web アプリケーションのスターターキット
-- 型安全なフロントエンド開発を必要とするプロジェクト
+- GitLab プロジェクトの一覧管理と同期
+- ブランチ単位でのコミット情報の収集と分析
+- リポジトリの生産性分析の基盤データの収集
 
 ## Value Proposition
 
 - **モダンなスタック**: Laravel 12 + React 19 + TypeScript による型安全な開発
 - **SPA 体験**: Inertia.js によるページ遷移なしのスムーズな UX
-- **UI コンポーネント基盤**: Radix UI + Tailwind CSS によるアクセシブルなデザインシステムの準備
+- **クリーンアーキテクチャ**: テスタビリティと保守性を重視した設計
+- **GitLab API 統合**: Ports and Adapters パターンによる外部API統合
 - **開発体験**: Vite による高速な開発サーバーとビルド、SSR 対応
 
 ---

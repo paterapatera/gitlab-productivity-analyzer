@@ -2,22 +2,10 @@
 
 namespace App\Presentation\Request\Project;
 
-use Illuminate\Http\Request;
+use App\Presentation\Request\BaseRequest;
 
-class ListRequest
+class ListRequest extends BaseRequest
 {
-    public function __construct(
-        private readonly Request $request
-    ) {}
-
-    /**
-     * HTTPリクエストを取得
-     */
-    public function getRequest(): Request
-    {
-        return $this->request;
-    }
-
     /**
      * バリデーションルールを取得
      *

@@ -2,7 +2,10 @@ import '@testing-library/jest-dom';
 import { cleanup } from '@testing-library/react';
 import { afterEach, vi } from 'vitest';
 
-// window.matchMedia をモック
+/**
+ * window.matchMedia をモック
+ * Tailwind CSS の dark モードなどで使用される
+ */
 Object.defineProperty(window, 'matchMedia', {
     writable: true,
     value: vi.fn().mockImplementation((query) => ({
@@ -17,7 +20,9 @@ Object.defineProperty(window, 'matchMedia', {
     })),
 });
 
-// Cleanup after each test
+/**
+ * 各テスト後にクリーンアップを実行
+ */
 afterEach(() => {
     cleanup();
 });

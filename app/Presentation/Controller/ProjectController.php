@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class ProjectController
+class ProjectController extends BaseController
 {
     public function __construct(
         private readonly ProjectRepository $repository,
@@ -23,25 +23,15 @@ class ProjectController
      */
     public function index(Request $httpRequest): Response
     {
-        try {
+        return $this->renderWithErrorHandling(function () use ($httpRequest) {
             $request = new ListRequest($httpRequest);
             $projects = $this->repository->findAll();
             $response = new ListResponse($projects);
 
-            $props = $response->toArray();
-
-            // フラッシュメッセージをpropsに追加
-            if ($httpRequest->session()->has('error')) {
-                $props['error'] = $httpRequest->session()->get('error');
-            }
-            if ($httpRequest->session()->has('success')) {
-                $props['success'] = $httpRequest->session()->get('success');
-            }
+            $props = $this->addFlashMessages($response->toArray(), $httpRequest);
 
             return Inertia::render('Project/Index', $props);
-        } catch (\Exception $e) {
-            abort(500, 'プロジェクト一覧の取得に失敗しました。');
-        }
+        }, 'プロジェクト一覧の取得に失敗しました。');
     }
 
     /**

@@ -2,13 +2,15 @@
 
 namespace App\Presentation\Response\Project;
 
-use App\Domain\Project;
+use App\Presentation\Response\ConvertsProjectsToArray;
 use Illuminate\Support\Collection;
 
 class ListResponse
 {
+    use ConvertsProjectsToArray;
+
     /**
-     * @param  Collection<int, Project>  $projects
+     * @param  Collection<int, \App\Domain\Project>  $projects
      */
     public function __construct(
         private readonly Collection $projects
@@ -22,14 +24,7 @@ class ListResponse
     public function toArray(): array
     {
         return [
-            'projects' => $this->projects->map(function (Project $project) {
-                return [
-                    'id' => $project->id->value,
-                    'name_with_namespace' => $project->nameWithNamespace->value,
-                    'description' => $project->description->value,
-                    'default_branch' => $project->defaultBranch->value,
-                ];
-            })->toArray(),
+            'projects' => $this->projectsToArray($this->projects),
         ];
     }
 }
