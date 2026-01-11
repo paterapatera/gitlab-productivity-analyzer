@@ -48,4 +48,20 @@ abstract class BaseController
             abort(500, $errorMessage);
         }
     }
+
+    /**
+     * エラーハンドリング付きでリダイレクトレスポンスを返す
+     *
+     * @param  callable  $callback  リダイレクトレスポンスを生成するコールバック
+     * @param  string  $errorMessage  エラーメッセージ
+     * @return \Illuminate\Http\RedirectResponse リダイレクトレスポンス
+     */
+    protected function redirectWithErrorHandling(callable $callback, string $errorMessage): \Illuminate\Http\RedirectResponse
+    {
+        try {
+            return $callback();
+        } catch (\Exception $e) {
+            abort(500, $errorMessage);
+        }
+    }
 }

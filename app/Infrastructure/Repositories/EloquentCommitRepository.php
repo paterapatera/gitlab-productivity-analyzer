@@ -8,10 +8,12 @@ use App\Domain\ValueObjects\Additions;
 use App\Domain\ValueObjects\AuthorEmail;
 use App\Domain\ValueObjects\AuthorName;
 use App\Domain\ValueObjects\BranchName;
+use App\Domain\ValueObjects\CommitId;
 use App\Domain\ValueObjects\CommitMessage;
 use App\Domain\ValueObjects\CommitSha;
 use App\Domain\ValueObjects\CommittedDate;
 use App\Domain\ValueObjects\Deletions;
+use App\Domain\ValueObjects\ProjectId;
 use App\Infrastructure\Repositories\Eloquent\CommitEloquentModel;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -40,13 +42,25 @@ class EloquentCommitRepository implements CommitRepository
     }
 
     /**
+     * 指定されたプロジェクトIDとブランチ名で最新コミット日時を取得
+     */
+    public function findLatestCommittedDate(ProjectId $projectId, BranchName $branchName): ?\DateTime
+    {
+        $result = CommitEloquentModel::where('project_id', $projectId->value)
+            ->where('branch_name', $branchName->value)
+            ->max('committed_date');
+
+        return $result ? Carbon::parse($result)->toDateTime() : null;
+    }
+
+    /**
      * エンティティに対応するEloquentモデルを検索
      */
     protected function findModel($entity)
     {
-        return CommitEloquentModel::where('project_id', $entity->projectId->value)
-            ->where('branch_name', $entity->branchName->value)
-            ->where('sha', $entity->sha->value)
+        return CommitEloquentModel::where('project_id', $entity->id->projectId->value)
+            ->where('branch_name', $entity->id->branchName->value)
+            ->where('sha', $entity->id->sha->value)
             ->first();
     }
 
@@ -56,9 +70,9 @@ class EloquentCommitRepository implements CommitRepository
     protected function createModel($entity)
     {
         $model = new CommitEloquentModel;
-        $model->project_id = $entity->projectId->value;
-        $model->branch_name = $entity->branchName->value;
-        $model->sha = $entity->sha->value;
+        $model->project_id = $entity->id->projectId->value;
+        $model->branch_name = $entity->id->branchName->value;
+        $model->sha = $entity->id->sha->value;
 
         return $model;
     }
@@ -70,9 +84,11 @@ class EloquentCommitRepository implements CommitRepository
     {
         /** @var CommitEloquentModel $model */
         return new Commit(
-            projectId: new \App\Domain\ValueObjects\ProjectId($model->project_id),
-            branchName: new BranchName($model->branch_name),
-            sha: new CommitSha($model->sha),
+            id: new CommitId(
+                projectId: new ProjectId($model->project_id),
+                branchName: new BranchName($model->branch_name),
+                sha: new CommitSha($model->sha)
+            ),
             message: new CommitMessage($model->message ?? ''),
             committedDate: new CommittedDate($model->committed_date),
             authorName: new AuthorName($model->author_name),

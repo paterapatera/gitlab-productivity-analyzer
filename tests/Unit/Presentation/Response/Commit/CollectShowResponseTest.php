@@ -1,9 +1,9 @@
 <?php
 
 use App\Application\DTO\CollectCommitsResult;
-use App\Presentation\Response\Commit\IndexResponse;
+use App\Presentation\Response\Commit\CollectShowResponse;
 
-test('IndexResponseはプロジェクトコレクションと結果から配列に変換できる', function () {
+test('CollectShowResponseはプロジェクトコレクションと結果から配列に変換できる', function () {
     $projects = collect([
         createProject(1, 'group/project1'),
         createProject(2, 'group/project2'),
@@ -16,7 +16,7 @@ test('IndexResponseはプロジェクトコレクションと結果から配列�
         errorMessage: null
     );
 
-    $response = new IndexResponse($projects, $result);
+    $response = new CollectShowResponse($projects, $result);
     $data = $response->toArray();
 
     expect($data)->toBeArray();
@@ -35,7 +35,7 @@ test('IndexResponseはプロジェクトコレクションと結果から配列�
     expect($data['result']['errorMessage'])->toBeNull();
 });
 
-test('IndexResponseは空のコレクションを処理できる', function () {
+test('CollectShowResponseは空のコレクションを処理できる', function () {
     $projects = collect([]);
     $result = new CollectCommitsResult(
         collectedCount: 0,
@@ -44,7 +44,7 @@ test('IndexResponseは空のコレクションを処理できる', function () {
         errorMessage: null
     );
 
-    $response = new IndexResponse($projects, $result);
+    $response = new CollectShowResponse($projects, $result);
     $data = $response->toArray();
 
     expect($data)->toBeArray();
@@ -55,7 +55,7 @@ test('IndexResponseは空のコレクションを処理できる', function () {
     expect($data['result']['collectedCount'])->toBe(0);
 });
 
-test('IndexResponseはエラー結果を処理できる', function () {
+test('CollectShowResponseはエラー結果を処理できる', function () {
     $projects = collect([
         createProject(1, 'group/project1'),
     ]);
@@ -67,19 +67,19 @@ test('IndexResponseはエラー結果を処理できる', function () {
         errorMessage: 'ブランチが存在しません'
     );
 
-    $response = new IndexResponse($projects, $result);
+    $response = new CollectShowResponse($projects, $result);
     $data = $response->toArray();
 
     expect($data['result']['hasErrors'])->toBeTrue();
     expect($data['result']['errorMessage'])->toBe('ブランチが存在しません');
 });
 
-test('IndexResponseは結果がnullの場合にresultをnullとして返す', function () {
+test('CollectShowResponseは結果がnullの場合にresultをnullとして返す', function () {
     $projects = collect([
         createProject(1, 'group/project1'),
     ]);
 
-    $response = new IndexResponse($projects, null);
+    $response = new CollectShowResponse($projects, null);
     $data = $response->toArray();
 
     expect($data)->toBeArray();

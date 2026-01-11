@@ -1,11 +1,13 @@
 <?php
 
 use App\Domain\Commit;
-use App\Infrastructure\Repositories\EloquentCommitRepository;
+
+require_once __DIR__.'/Helpers.php';
+require_once __DIR__.'/../../Unit/Domain/CommitTest.php';
 
 describe('save()メソッド', function () {
     test('新規コミットを保存できる', function () {
-        $repository = new EloquentCommitRepository;
+        $repository = getEloquentCommitRepository();
 
         $commit = createCommit(
             projectId: 1,
@@ -22,13 +24,13 @@ describe('save()メソッド', function () {
         $result = $repository->save($commit);
 
         expect($result)->toBeInstanceOf(Commit::class);
-        expect($result->projectId->value)->toBe(1);
-        expect($result->branchName->value)->toBe('main');
-        expect($result->sha->value)->toBe('a1b2c3d4e5f6789012345678901234567890abcd');
+        expect($result->id->projectId->value)->toBe(1);
+        expect($result->id->branchName->value)->toBe('main');
+        expect($result->id->sha->value)->toBe('a1b2c3d4e5f6789012345678901234567890abcd');
     });
 
     test('既存コミットを更新できる', function () {
-        $repository = new EloquentCommitRepository;
+        $repository = getEloquentCommitRepository();
 
         $commit1 = createCommit(
             projectId: 1,
@@ -63,7 +65,7 @@ describe('save()メソッド', function () {
     });
 
     test('nullのmessage、authorName、authorEmailを保存できる', function () {
-        $repository = new EloquentCommitRepository;
+        $repository = getEloquentCommitRepository();
 
         $commit = createCommit(
             projectId: 1,
@@ -87,7 +89,7 @@ describe('save()メソッド', function () {
 
 describe('saveMany()メソッド', function () {
     test('複数のコミットを一括保存できる', function () {
-        $repository = new EloquentCommitRepository;
+        $repository = getEloquentCommitRepository();
 
         $commits = collect([
             createCommit(
@@ -133,7 +135,7 @@ describe('saveMany()メソッド', function () {
     });
 
     test('既存コミットと新規コミットを混在して保存できる', function () {
-        $repository = new EloquentCommitRepository;
+        $repository = getEloquentCommitRepository();
 
         // 既存コミットを作成
         $existing = createCommit(
@@ -192,7 +194,7 @@ describe('saveMany()メソッド', function () {
 
 describe('一意性制約', function () {
     test('同じSHAでも異なるプロジェクトIDの場合は別レコードとして保存される', function () {
-        $repository = new EloquentCommitRepository;
+        $repository = getEloquentCommitRepository();
 
         $commit1 = createCommit(
             projectId: 1,
@@ -243,7 +245,7 @@ describe('一意性制約', function () {
     });
 
     test('同じSHAでも異なるブランチ名の場合は別レコードとして保存される', function () {
-        $repository = new EloquentCommitRepository;
+        $repository = getEloquentCommitRepository();
 
         $commit1 = createCommit(
             projectId: 1,
@@ -292,7 +294,7 @@ describe('一意性制約', function () {
     });
 
     test('同じ(project_id, branch_name, sha)の組み合わせで保存した場合、更新される', function () {
-        $repository = new EloquentCommitRepository;
+        $repository = getEloquentCommitRepository();
 
         $commit1 = createCommit(
             projectId: 1,
@@ -336,7 +338,7 @@ describe('一意性制約', function () {
     });
 
     test('異なる(project_id, branch_name, sha)の組み合わせで複数のコミットを保存できる', function () {
-        $repository = new EloquentCommitRepository;
+        $repository = getEloquentCommitRepository();
 
         $commits = collect([
             createCommit(
@@ -394,5 +396,204 @@ describe('一意性制約', function () {
         // 各コミットが正しく保存されていることを確認
         $allCommits = \App\Infrastructure\Repositories\Eloquent\CommitEloquentModel::all();
         expect($allCommits->pluck('message')->toArray())->toContain('Commit 1', 'Commit 2', 'Commit 3', 'Commit 4');
+    });
+});
+
+describe('findLatestCommittedDate()メソッド', function () {
+    test('最新コミット日時を取得できる', function () {
+        $repository = getEloquentCommitRepository();
+
+        // 複数のコミットを作成（異なる日時）
+        $commits = collect([
+            createCommit(
+                projectId: 1,
+                branchName: 'main',
+                sha: 'a1b2c3d4e5f6789012345678901234567890abcd',
+                message: 'Commit 1',
+                committedDate: '2025-01-01 12:00:00',
+                authorName: 'John Doe',
+                authorEmail: 'john@example.com',
+                additions: 100,
+                deletions: 10
+            ),
+            createCommit(
+                projectId: 1,
+                branchName: 'main',
+                sha: 'b2c3d4e5f6789012345678901234567890abcdef',
+                message: 'Commit 2',
+                committedDate: '2025-01-02 12:00:00',
+                authorName: 'Jane Doe',
+                authorEmail: 'jane@example.com',
+                additions: 200,
+                deletions: 20
+            ),
+            createCommit(
+                projectId: 1,
+                branchName: 'main',
+                sha: 'c3d4e5f6789012345678901234567890abcdef01',
+                message: 'Commit 3',
+                committedDate: '2025-01-03 12:00:00',
+                authorName: 'Bob Smith',
+                authorEmail: 'bob@example.com',
+                additions: 300,
+                deletions: 30
+            ),
+        ]);
+
+        $repository->saveMany($commits);
+
+        $result = $repository->findLatestCommittedDate(
+            new \App\Domain\ValueObjects\ProjectId(1),
+            new \App\Domain\ValueObjects\BranchName('main')
+        );
+
+        expect($result)->toBeInstanceOf(\DateTime::class);
+        expect($result->format('Y-m-d H:i:s'))->toBe('2025-01-03 12:00:00');
+    });
+
+    test('コミットが存在しない場合はnullを返す', function () {
+        $repository = getEloquentCommitRepository();
+
+        $result = $repository->findLatestCommittedDate(
+            new \App\Domain\ValueObjects\ProjectId(999),
+            new \App\Domain\ValueObjects\BranchName('nonexistent')
+        );
+
+        expect($result)->toBeNull();
+    });
+
+    test('複数のコミットが同じ日時を持つ場合も正しく処理する', function () {
+        $repository = getEloquentCommitRepository();
+
+        // 同じ日時のコミットを複数作成
+        $commits = collect([
+            createCommit(
+                projectId: 1,
+                branchName: 'main',
+                sha: 'a1b2c3d4e5f6789012345678901234567890abcd',
+                message: 'Commit 1',
+                committedDate: '2025-01-01 12:00:00',
+                authorName: 'John Doe',
+                authorEmail: 'john@example.com',
+                additions: 100,
+                deletions: 10
+            ),
+            createCommit(
+                projectId: 1,
+                branchName: 'main',
+                sha: 'b2c3d4e5f6789012345678901234567890abcdef',
+                message: 'Commit 2',
+                committedDate: '2025-01-01 12:00:00', // 同じ日時
+                authorName: 'Jane Doe',
+                authorEmail: 'jane@example.com',
+                additions: 200,
+                deletions: 20
+            ),
+            createCommit(
+                projectId: 1,
+                branchName: 'main',
+                sha: 'c3d4e5f6789012345678901234567890abcdef01',
+                message: 'Commit 3',
+                committedDate: '2025-01-01 12:00:00', // 同じ日時
+                authorName: 'Bob Smith',
+                authorEmail: 'bob@example.com',
+                additions: 300,
+                deletions: 30
+            ),
+        ]);
+
+        $repository->saveMany($commits);
+
+        $result = $repository->findLatestCommittedDate(
+            new \App\Domain\ValueObjects\ProjectId(1),
+            new \App\Domain\ValueObjects\BranchName('main')
+        );
+
+        expect($result)->toBeInstanceOf(\DateTime::class);
+        expect($result->format('Y-m-d H:i:s'))->toBe('2025-01-01 12:00:00');
+    });
+
+    test('異なるプロジェクトIDの場合は正しくフィルタリングされる', function () {
+        $repository = getEloquentCommitRepository();
+
+        // プロジェクト1のコミット
+        $commit1 = createCommit(
+            projectId: 1,
+            branchName: 'main',
+            sha: 'a1b2c3d4e5f6789012345678901234567890abcd',
+            message: 'Commit in project 1',
+            committedDate: '2025-01-01 12:00:00',
+            authorName: 'John Doe',
+            authorEmail: 'john@example.com',
+            additions: 100,
+            deletions: 10
+        );
+
+        // プロジェクト2のコミット（より新しい日時）
+        $commit2 = createCommit(
+            projectId: 2,
+            branchName: 'main',
+            sha: 'b2c3d4e5f6789012345678901234567890abcdef',
+            message: 'Commit in project 2',
+            committedDate: '2025-01-02 12:00:00',
+            authorName: 'Jane Doe',
+            authorEmail: 'jane@example.com',
+            additions: 200,
+            deletions: 20
+        );
+
+        $repository->save($commit1);
+        $repository->save($commit2);
+
+        // プロジェクト1の最新日時を取得
+        $result = $repository->findLatestCommittedDate(
+            new \App\Domain\ValueObjects\ProjectId(1),
+            new \App\Domain\ValueObjects\BranchName('main')
+        );
+
+        expect($result)->toBeInstanceOf(\DateTime::class);
+        expect($result->format('Y-m-d H:i:s'))->toBe('2025-01-01 12:00:00');
+    });
+
+    test('異なるブランチ名の場合は正しくフィルタリングされる', function () {
+        $repository = getEloquentCommitRepository();
+
+        // mainブランチのコミット
+        $commit1 = createCommit(
+            projectId: 1,
+            branchName: 'main',
+            sha: 'a1b2c3d4e5f6789012345678901234567890abcd',
+            message: 'Commit in main',
+            committedDate: '2025-01-01 12:00:00',
+            authorName: 'John Doe',
+            authorEmail: 'john@example.com',
+            additions: 100,
+            deletions: 10
+        );
+
+        // developブランチのコミット（より新しい日時）
+        $commit2 = createCommit(
+            projectId: 1,
+            branchName: 'develop',
+            sha: 'b2c3d4e5f6789012345678901234567890abcdef',
+            message: 'Commit in develop',
+            committedDate: '2025-01-02 12:00:00',
+            authorName: 'Jane Doe',
+            authorEmail: 'jane@example.com',
+            additions: 200,
+            deletions: 20
+        );
+
+        $repository->save($commit1);
+        $repository->save($commit2);
+
+        // mainブランチの最新日時を取得
+        $result = $repository->findLatestCommittedDate(
+            new \App\Domain\ValueObjects\ProjectId(1),
+            new \App\Domain\ValueObjects\BranchName('main')
+        );
+
+        expect($result)->toBeInstanceOf(\DateTime::class);
+        expect($result->format('Y-m-d H:i:s'))->toBe('2025-01-01 12:00:00');
     });
 });

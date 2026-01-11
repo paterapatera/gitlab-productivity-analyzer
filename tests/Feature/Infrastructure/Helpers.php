@@ -1,6 +1,12 @@
 <?php
 
+use App\Domain\Project;
+use App\Infrastructure\Repositories\EloquentCommitCollectionHistoryRepository;
+use App\Infrastructure\Repositories\EloquentCommitRepository;
+use App\Infrastructure\Repositories\EloquentProjectRepository;
 use Illuminate\Support\Facades\Http;
+
+require_once __DIR__.'/../../Helpers.php';
 
 /**
  * プロジェクトデータを作成するヘルパー関数
@@ -120,4 +126,68 @@ function createCommitCollectionApiMock(
     }
 
     return $mocks;
+}
+
+/**
+ * テスト用のCommitCollectionHistoryエンティティを作成
+ */
+if (! function_exists('createCommitCollectionHistory')) {
+    function createCommitCollectionHistory(
+        int $projectId = 123,
+        string $branchName = 'main',
+        string $latestCommittedDate = '2024-01-01 12:00:00'
+    ): \App\Domain\CommitCollectionHistory {
+        return new \App\Domain\CommitCollectionHistory(
+            id: new \App\Domain\ValueObjects\CommitCollectionHistoryId(
+                projectId: new \App\Domain\ValueObjects\ProjectId($projectId),
+                branchName: new \App\Domain\ValueObjects\BranchName($branchName)
+            ),
+            latestCommittedDate: new \App\Domain\ValueObjects\CommittedDate(new \DateTime($latestCommittedDate))
+        );
+    }
+}
+
+if (! function_exists('getEloquentCommitRepository')) {
+    /**
+     * EloquentCommitRepositoryのインスタンスを取得
+     */
+    function getEloquentCommitRepository(): EloquentCommitRepository
+    {
+        return new EloquentCommitRepository;
+    }
+}
+
+if (! function_exists('getEloquentProjectRepository')) {
+    /**
+     * EloquentProjectRepositoryのインスタンスを取得
+     */
+    function getEloquentProjectRepository(): EloquentProjectRepository
+    {
+        return new EloquentProjectRepository;
+    }
+}
+
+if (! function_exists('getEloquentCommitCollectionHistoryRepository')) {
+    /**
+     * EloquentCommitCollectionHistoryRepositoryのインスタンスを取得
+     */
+    function getEloquentCommitCollectionHistoryRepository(): EloquentCommitCollectionHistoryRepository
+    {
+        return new EloquentCommitCollectionHistoryRepository;
+    }
+}
+
+if (! function_exists('setupProjectForRepositoryTest')) {
+    /**
+     * リポジトリテスト用のプロジェクトをセットアップ
+     * 外部キー制約のため、プロジェクトを先に作成する必要がある場合に使用
+     */
+    function setupProjectForRepositoryTest(int $projectId = 1, string $nameWithNamespace = 'group/project1'): Project
+    {
+        $projectRepository = getProjectRepository();
+        $project = createProject($projectId, $nameWithNamespace);
+        $projectRepository->save($project);
+
+        return $project;
+    }
 }

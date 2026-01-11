@@ -65,7 +65,6 @@ Focus on capabilities and outcomes, not code structure.
 **Exception - Final Documentation & Validation**:
 - **MUST include** a final section for documentation updates and validation:
   - README.md update task
-  - AGENTS.md update task
   - `npm run pre-push` execution task
 - These tasks should be placed at the end of the task list as the final major task group
 - Format: Create a major task (e.g., "N. ドキュメント更新と最終確認") with sub-tasks for each documentation/validation item
@@ -75,6 +74,39 @@ Focus on capabilities and outcomes, not code structure.
 - When the design already guarantees functional coverage and rapid MVP delivery is prioritized, mark purely test-oriented follow-up work (e.g., baseline rendering/unit tests) as **optional** using the `- [ ]*` checkbox form.
 - Only apply the optional marker when the sub-task directly references acceptance criteria from requirements.md in its detail bullets.
 - Never mark implementation work or integration-critical verification as optional—reserve `*` for auxiliary/deferrable test coverage that can be revisited post-MVP.
+
+### 6. Test-Driven Development (TDD) Guidelines
+
+**Core Principle**: Follow TDD methodology (RED → GREEN → REFACTOR) for implementation tasks, but focus on **testing behavior, not implementation details**.
+
+**What to Test**:
+- **Behavior and functionality**: Test what the code does, not how it does it
+- **Business logic**: Test domain logic, use cases, and workflows
+- **Integration points**: Test how components work together
+- **Edge cases and error handling**: Test boundary conditions and error scenarios
+
+**What NOT to Test** (Exceptions to TDD):
+- **Interfaces (Ports)**: Interface definitions are type contracts only—no implementation to test. Test the implementing classes instead (e.g., `CommitRepository` interface has no test, but `EloquentCommitRepository` implementation is tested).
+- **Service Provider bindings**: Binding configuration is verified through actual behavior tests, not dedicated binding tests.
+- **Implementation details**: Internal structure, private methods, and implementation-specific details should not be tested directly.
+- **Type definitions**: Type signatures and interface contracts are enforced by the type system—no need for reflection-based signature tests.
+
+**Rationale**:
+- **Interfaces have no behavior**: They are type definitions only. The implementing classes contain the actual behavior that needs testing.
+- **Type system enforces contracts**: The compiler/type checker already validates that implementations match interfaces.
+- **Behavior tests catch interface changes**: If an interface changes, implementation tests will fail naturally, providing sufficient feedback.
+- **Focus on value**: Tests should provide value by catching bugs and regressions. Testing implementation details adds maintenance cost without proportional benefit.
+
+**When generating test tasks**:
+- Generate tests for **implementing classes** (e.g., `EloquentCommitRepository`, `CollectCommits` service)
+- Generate tests for **domain entities** and **value objects** (they contain business logic)
+- Generate tests for **controllers** and **services** (they orchestrate behavior)
+- **Do NOT** generate tests for interfaces, type definitions, or service provider bindings
+- **Do NOT** generate reflection-based tests that only verify method signatures exist
+
+**Example**:
+- ✅ **Generate**: "Test `EloquentCommitCollectionHistoryRepository::saveOrUpdate()` method"
+- ❌ **Do NOT generate**: "Test `CommitCollectionHistoryRepository` interface method signatures"
 
 ## Task Hierarchy Rules
 

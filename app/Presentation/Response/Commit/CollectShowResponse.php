@@ -6,7 +6,7 @@ use App\Application\DTO\CollectCommitsResult;
 use App\Presentation\Response\ConvertsProjectsToArray;
 use Illuminate\Support\Collection;
 
-class IndexResponse
+class CollectShowResponse
 {
     use ConvertsProjectsToArray;
 

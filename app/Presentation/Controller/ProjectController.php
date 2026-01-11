@@ -39,7 +39,7 @@ class ProjectController extends BaseController
      */
     public function sync(): RedirectResponse
     {
-        try {
+        return $this->redirectWithErrorHandling(function () {
             $result = $this->syncProjects->execute();
 
             if ($result->hasErrors) {
@@ -49,8 +49,6 @@ class ProjectController extends BaseController
 
             return redirect()->route('projects.index')
                 ->with('success', "同期が完了しました。同期: {$result->syncedCount}件、削除: {$result->deletedCount}件");
-        } catch (\Exception $e) {
-            abort(500, '同期処理に失敗しました。');
-        }
+        }, '同期処理に失敗しました。');
     }
 }

@@ -7,6 +7,7 @@ use App\Domain\ValueObjects\Additions;
 use App\Domain\ValueObjects\AuthorEmail;
 use App\Domain\ValueObjects\AuthorName;
 use App\Domain\ValueObjects\BranchName;
+use App\Domain\ValueObjects\CommitId;
 use App\Domain\ValueObjects\CommitMessage;
 use App\Domain\ValueObjects\CommitSha;
 use App\Domain\ValueObjects\CommittedDate;
@@ -98,9 +99,11 @@ trait FetchesCommits
         $deletions = $stats['deletions'] ?? 0;
 
         return new Commit(
-            projectId: $projectId,
-            branchName: $branchName,
-            sha: new CommitSha($commitData['id']),
+            id: new CommitId(
+                projectId: $projectId,
+                branchName: $branchName,
+                sha: new CommitSha($commitData['id'])
+            ),
             message: new CommitMessage($commitData['message'] ?? ''),
             committedDate: new CommittedDate(new \DateTime($commitData['committed_date'])),
             authorName: new AuthorName($commitData['author_name'] ?? null),

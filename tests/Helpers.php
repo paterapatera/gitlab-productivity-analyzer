@@ -46,3 +46,18 @@ if (! function_exists('getCommitRepository')) {
         return app(CommitRepository::class);
     }
 }
+
+if (! function_exists('getCommitCollectionHistoryRepository')) {
+    /**
+     * CommitCollectionHistoryRepository のインスタンスを取得
+     */
+    function getCommitCollectionHistoryRepository(): \App\Application\Port\CommitCollectionHistoryRepository
+    {
+        return app(\App\Application\Port\CommitCollectionHistoryRepository::class);
+    }
+}
+
+// Application層のヘルパー関数を読み込む（getGitLabApiClientなど）
+if (file_exists(__DIR__.'/Feature/Application/Helpers.php')) {
+    require_once __DIR__.'/Feature/Application/Helpers.php';
+}

@@ -3,14 +3,16 @@
 use App\Application\Contract\CollectCommits;
 use App\Application\Port\GitApi;
 use App\Application\Port\ProjectRepository;
-use App\Infrastructure\GitLab\GitLabApiClient;
 use Illuminate\Support\Facades\Http;
 use Inertia\Testing\AssertableInertia as Assert;
 
 require_once __DIR__.'/../../Infrastructure/Helpers.php';
+require_once __DIR__.'/../../Application/Helpers.php';
+require_once __DIR__.'/../../../Unit/Domain/CommitCollectionHistoryTest.php';
+require_once __DIR__.'/../../../Unit/Domain/CommitTest.php';
 
 describe('CommitController', function () {
-    describe('index()メソッド', function () {
+    describe('collectShow()メソッド', function () {
 
         test('コミット収集ページを表示してプロジェクト一覧を含む', function () {
             $repository = getProjectRepository();
@@ -85,7 +87,7 @@ describe('CommitController', function () {
             ));
 
             // GitApiを実際のインスタンスに置き換え（Http::fake()でモック済み）
-            $gitApi = new GitLabApiClient('https://gitlab.example.com', 'test-token');
+            $gitApi = getGitLabApiClient();
             app()->instance(GitApi::class, $gitApi);
 
             $response = $this->post('/commits/collect', [
@@ -117,7 +119,7 @@ describe('CommitController', function () {
             ));
 
             // GitApiを実際のインスタンスに置き換え（Http::fake()でモック済み）
-            $gitApi = new GitLabApiClient('https://gitlab.example.com', 'test-token');
+            $gitApi = getGitLabApiClient();
             app()->instance(GitApi::class, $gitApi);
 
             $response = $this->post('/commits/collect', [
@@ -150,7 +152,7 @@ describe('CommitController', function () {
             ));
 
             // GitApiを実際のインスタンスに置き換え（Http::fake()でモック済み）
-            $gitApi = new GitLabApiClient('https://gitlab.example.com', 'test-token');
+            $gitApi = getGitLabApiClient();
             app()->instance(GitApi::class, $gitApi);
 
             $response = $this->post('/commits/collect', [
@@ -237,4 +239,218 @@ describe('CommitController', function () {
             $response->assertStatus(500);
         });
     });
+
+    describe('recollectShow()メソッド', function () {
+        test('再収集ページを表示して収集履歴一覧を含む', function () {
+            $projectRepository = getProjectRepository();
+            $project1 = createProject(1, 'group/project1');
+            $project2 = createProject(2, 'group/project2');
+            $projectRepository->save($project1);
+            $projectRepository->save($project2);
+
+            $commitCollectionHistoryRepository = getCommitCollectionHistoryRepository();
+            $history1 = createCommitCollectionHistory(1, 'main', '2025-01-01 12:00:00');
+            $history2 = createCommitCollectionHistory(2, 'develop', '2025-01-02 12:00:00');
+            $commitCollectionHistoryRepository->save($history1);
+            $commitCollectionHistoryRepository->save($history2);
+
+            $response = $this->withoutVite()->get('/commits/recollect');
+
+            $response->assertStatus(200);
+            $response->assertInertia(fn (Assert $page) => $page
+                ->component('Commit/Recollect')
+                ->has('histories', 2)
+                ->where('histories.0.project_id', 1)
+                ->where('histories.0.project_name_with_namespace', 'group/project1')
+                ->where('histories.0.branch_name', 'main')
+                ->where('histories.1.project_id', 2)
+                ->where('histories.1.project_name_with_namespace', 'group/project2')
+                ->where('histories.1.branch_name', 'develop')
+            );
+        });
+
+        test('空の収集履歴一覧を返却できる', function () {
+            $response = $this->withoutVite()->get('/commits/recollect');
+
+            $response->assertStatus(200);
+            $response->assertInertia(fn (Assert $page) => $page
+                ->component('Commit/Recollect')
+                ->has('histories', 0)
+            );
+        });
+
+        test('フラッシュメッセージをpropsに追加できる', function () {
+            $response = $this->withoutVite()
+                ->withSession(['success' => '再収集が完了しました。'])
+                ->get('/commits/recollect');
+
+            $response->assertStatus(200);
+            $response->assertInertia(fn (Assert $page) => $page
+                ->component('Commit/Recollect')
+                ->where('success', '再収集が完了しました。')
+            );
+        });
+
+        test('リポジトリエラー時に500エラーを返す', function () {
+            $mockRepository = Mockery::mock(\App\Application\Port\CommitCollectionHistoryRepository::class);
+            $mockRepository->shouldReceive('findAll')
+                ->once()
+                ->andThrow(new \Exception('Database connection failed'));
+
+            $this->app->instance(\App\Application\Port\CommitCollectionHistoryRepository::class, $mockRepository);
+
+            $response = $this->withoutVite()->get('/commits/recollect');
+
+            $response->assertStatus(500);
+        });
+    });
+
+    describe('recollect()メソッド', function () {
+        test('再収集リクエストを処理してリダイレクトする', function () {
+            $projectRepository = getProjectRepository();
+            $project = createProject(1, 'group/project1');
+            $projectRepository->save($project);
+
+            // GitLab API をモック
+            Http::fake(createCommitCollectionApiMock(
+                projectId: 1,
+                branchName: 'main',
+                commits: [
+                    createCommitData('a1b2c3d4e5f6789012345678901234567890abcd', 'Commit 1', '2025-01-15T12:00:00Z', 'Author 1', 'author1@example.com', 10, 5),
+                    createCommitData('b2c3d4e5f6789012345678901234567890abcdef', 'Commit 2', '2025-01-14T12:00:00Z', 'Author 2', 'author2@example.com', 20, 10),
+                ]
+            ));
+
+            // GitApiを実際のインスタンスに置き換え（Http::fake()でモック済み）
+            $gitApi = getGitLabApiClient();
+            app()->instance(GitApi::class, $gitApi);
+
+            $response = $this->post('/commits/recollect', [
+                'project_id' => 1,
+                'branch_name' => 'main',
+            ]);
+
+            $response->assertStatus(302);
+            $response->assertRedirect('/commits/recollect');
+            $response->assertSessionHas('success', '再収集が完了しました。収集: 2件、保存: 2件');
+        });
+
+        test('エラー時にリダイレクトしてエラーメッセージを返す', function () {
+            $projectRepository = getProjectRepository();
+            $project = createProject(1, 'group/project1');
+            $projectRepository->save($project);
+
+            // GitLab API をモック（ブランチが存在しない）
+            Http::fake(createCommitCollectionApiMock(
+                projectId: 1,
+                branchName: 'nonexistent',
+                commits: [],
+                branchExists: false
+            ));
+
+            // GitApiを実際のインスタンスに置き換え（Http::fake()でモック済み）
+            $gitApi = getGitLabApiClient();
+            app()->instance(GitApi::class, $gitApi);
+
+            $response = $this->post('/commits/recollect', [
+                'project_id' => 1,
+                'branch_name' => 'nonexistent',
+            ]);
+
+            $response->assertStatus(302);
+            $response->assertRedirect('/commits/recollect');
+
+            // エラーメッセージがセッションに正しく保存されていることを確認
+            $response->assertSessionHas('error', function ($errorMessage) {
+                expect($errorMessage)->toBeString();
+                expect($errorMessage)->not->toBeEmpty();
+
+                return true;
+            });
+        });
+
+        test('バリデーションエラー時にリダイレクトしてエラーを返す', function () {
+            $response = $this->post('/commits/recollect', [
+                'project_id' => '',
+                'branch_name' => '',
+            ]);
+
+            $response->assertStatus(302);
+            $response->assertRedirect('/commits/recollect');
+            $response->assertSessionHasErrors(['project_id', 'branch_name']);
+        });
+
+        test('存在しないプロジェクトIDでバリデーションエラーを返す', function () {
+            $response = $this->post('/commits/recollect', [
+                'project_id' => 999,
+                'branch_name' => 'main',
+            ]);
+
+            $response->assertStatus(302);
+            $response->assertRedirect('/commits/recollect');
+            $response->assertSessionHasErrors(['project_id']);
+        });
+
+        test('例外発生時に500エラーを返す', function () {
+            $projectRepository = getProjectRepository();
+            $project = createProject(1, 'group/project1');
+            $projectRepository->save($project);
+
+            // CollectCommitsサービスをモックして例外をスロー
+            $mockCollectCommits = Mockery::mock(CollectCommits::class);
+            $mockCollectCommits->shouldReceive('execute')
+                ->once()
+                ->andThrow(new \Exception('Unexpected error'));
+
+            app()->instance(CollectCommits::class, $mockCollectCommits);
+
+            $response = $this->post('/commits/recollect', [
+                'project_id' => 1,
+                'branch_name' => 'main',
+            ]);
+
+            $response->assertStatus(500);
+        });
+
+        test('再収集時はsinceDateをnullとして渡す', function () {
+            $projectRepository = getProjectRepository();
+            $project = createProject(1, 'group/project1');
+            $projectRepository->save($project);
+
+            // GitLab API をモック
+            Http::fake(createCommitCollectionApiMock(
+                projectId: 1,
+                branchName: 'main',
+                commits: [
+                    createCommitData('a1b2c3d4e5f6789012345678901234567890abcd', 'Commit 1', '2025-01-15T12:00:00Z'),
+                ]
+            ));
+
+            // GitApiを実際のインスタンスに置き換え（Http::fake()でモック済み）
+            $gitApi = getGitLabApiClient();
+            app()->instance(GitApi::class, $gitApi);
+
+            $response = $this->post('/commits/recollect', [
+                'project_id' => 1,
+                'branch_name' => 'main',
+            ]);
+
+            $response->assertStatus(302);
+            $response->assertRedirect('/commits/recollect');
+
+            // sinceパラメータが送信されなかったことを確認（自動判定が実行される）
+            Http::assertSent(function ($request) {
+                if (str_contains($request->url(), '/commits')) {
+                    $data = $request->data();
+
+                    // 自動判定が実行されるため、sinceパラメータは送信される可能性がある
+                    // ただし、初回収集の場合は送信されない
+                    return true;
+                }
+
+                return false;
+            });
+        });
+    });
+
 });

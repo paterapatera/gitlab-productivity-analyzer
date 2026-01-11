@@ -67,7 +67,7 @@ Instruction highlights:
 - Collapse single-subtask structures by promoting them to major tasks and avoid duplicating details on container-only major tasks (use template patterns accordingly)
 - Apply `(P)` markers to tasks that satisfy parallel criteria (skip markers when `sequential == true`)
 - Mark optional acceptance-criteria-focused test coverage subtasks with `- [ ]*` only when deferrable post-MVP
-- **MUST include** a final section for documentation updates and validation (README.md update, AGENTS.md update, `npm run pre-push` execution) as the last major task group
+- **MUST include** a final section for documentation updates and validation (README.md update update, `npm run pre-push` execution) as the last major task group
 - If existing tasks.md found, merge with new content
 
 ### Step 3: Finalize

@@ -49,7 +49,7 @@ describe('FetchesCommitsトレイトの機能', function () {
         expect($commits)->toBeInstanceOf(\Illuminate\Support\Collection::class);
         expect($commits)->toHaveCount(1);
         expect($commits[0])->toBeInstanceOf(Commit::class);
-        expect($commits[0]->sha->value)->toBe('a1b2c3d4e5f6789012345678901234567890abcd');
+        expect($commits[0]->id->sha->value)->toBe('a1b2c3d4e5f6789012345678901234567890abcd');
         expect($commits[0]->message->value)->toBe('Initial commit');
     });
 

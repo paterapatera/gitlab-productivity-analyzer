@@ -193,8 +193,8 @@ describe('GitLabApiClientクラスのコミット取得機能', function () {
         $commits = $client->getCommits(new ProjectId(1), new BranchName('main'));
 
         expect($commits)->toHaveCount(2);
-        expect($commits[0]->sha->value)->toBe('a1b2c3d4e5f6789012345678901234567890abcd');
-        expect($commits[1]->sha->value)->toBe('b2c3d4e5f6789012345678901234567890abcdef');
+        expect($commits[0]->id->sha->value)->toBe('a1b2c3d4e5f6789012345678901234567890abcd');
+        expect($commits[1]->id->sha->value)->toBe('b2c3d4e5f6789012345678901234567890abcdef');
     });
 
     test('getCommits()でレート制限エラー（429）が発生した場合、指数バックオフでリトライする', function () {

@@ -2,12 +2,14 @@
 
 use App\Domain\Project;
 use App\Domain\ValueObjects\ProjectId;
-use App\Infrastructure\Repositories\EloquentProjectRepository;
 use Illuminate\Support\Collection;
+
+require_once __DIR__.'/Helpers.php';
+require_once __DIR__.'/../../Helpers.php';
 
 describe('findAll()メソッド', function () {
     test('全プロジェクトを取得できる', function () {
-        $repository = new EloquentProjectRepository;
+        $repository = getEloquentProjectRepository();
 
         // テストデータを作成
         $project1 = createProject(1, 'group/project1', 'Description 1', 'main');
@@ -24,7 +26,7 @@ describe('findAll()メソッド', function () {
     });
 
     test('プロジェクトが存在しない場合は空のCollectionを返す', function () {
-        $repository = new EloquentProjectRepository;
+        $repository = getEloquentProjectRepository();
 
         $result = $repository->findAll();
 
@@ -35,7 +37,7 @@ describe('findAll()メソッド', function () {
 
 describe('findByProjectId()メソッド', function () {
     test('プロジェクトIDでプロジェクトを取得できる', function () {
-        $repository = new EloquentProjectRepository;
+        $repository = getEloquentProjectRepository();
 
         $project = createProject(1, 'group/project', 'Description', 'main');
 
@@ -49,7 +51,7 @@ describe('findByProjectId()メソッド', function () {
     });
 
     test('存在しないプロジェクトIDの場合はnullを返す', function () {
-        $repository = new EloquentProjectRepository;
+        $repository = getEloquentProjectRepository();
 
         $result = $repository->findByProjectId(new ProjectId(999));
 
@@ -59,7 +61,7 @@ describe('findByProjectId()メソッド', function () {
 
 describe('save()メソッド', function () {
     test('新規プロジェクトを保存できる', function () {
-        $repository = new EloquentProjectRepository;
+        $repository = getEloquentProjectRepository();
 
         $project = createProject(1, 'group/project', 'Description', 'main');
 
@@ -75,7 +77,7 @@ describe('save()メソッド', function () {
     });
 
     test('既存プロジェクトを更新できる', function () {
-        $repository = new EloquentProjectRepository;
+        $repository = getEloquentProjectRepository();
 
         $project1 = createProject(1, 'group/project', 'Old Description', 'main');
         $repository->save($project1);
@@ -94,7 +96,7 @@ describe('save()メソッド', function () {
     });
 
     test('nullのdescriptionとdefaultBranchを保存できる', function () {
-        $repository = new EloquentProjectRepository;
+        $repository = getEloquentProjectRepository();
 
         $project = createProject(1, 'group/project');
 
@@ -111,7 +113,7 @@ describe('save()メソッド', function () {
 
 describe('saveMany()メソッド', function () {
     test('複数のプロジェクトを一括保存できる', function () {
-        $repository = new EloquentProjectRepository;
+        $repository = getEloquentProjectRepository();
 
         $projects = collect([
             createProject(1, 'group/project1'),
@@ -126,7 +128,7 @@ describe('saveMany()メソッド', function () {
     });
 
     test('既存プロジェクトと新規プロジェクトを混在して保存できる', function () {
-        $repository = new EloquentProjectRepository;
+        $repository = getEloquentProjectRepository();
 
         // 既存プロジェクトを作成
         $existing = createProject(1, 'group/project1');
@@ -149,7 +151,7 @@ describe('saveMany()メソッド', function () {
 
 describe('delete()メソッド', function () {
     test('プロジェクトを削除できる', function () {
-        $repository = new EloquentProjectRepository;
+        $repository = getEloquentProjectRepository();
 
         $project = createProject(1, 'group/project');
         $repository->save($project);
@@ -161,7 +163,7 @@ describe('delete()メソッド', function () {
     });
 
     test('存在しないプロジェクトを削除してもエラーにならない', function () {
-        $repository = new EloquentProjectRepository;
+        $repository = getEloquentProjectRepository();
 
         $project = createProject(999, 'group/nonexistent');
 
@@ -174,7 +176,7 @@ describe('delete()メソッド', function () {
 
 describe('findNotInProjectIds()メソッド', function () {
     test('指定されたプロジェクトIDリストに存在しないプロジェクトを取得できる', function () {
-        $repository = new EloquentProjectRepository;
+        $repository = getEloquentProjectRepository();
 
         // テストデータを作成
         $repository->save(createProject(1, 'group/project1'));
@@ -192,7 +194,7 @@ describe('findNotInProjectIds()メソッド', function () {
     });
 
     test('すべてのプロジェクトIDが指定された場合は空のCollectionを返す', function () {
-        $repository = new EloquentProjectRepository;
+        $repository = getEloquentProjectRepository();
 
         $repository->save(createProject(1, 'group/project1'));
 
@@ -205,7 +207,7 @@ describe('findNotInProjectIds()メソッド', function () {
     });
 
     test('空のプロジェクトIDリストを指定した場合は全プロジェクトを返す', function () {
-        $repository = new EloquentProjectRepository;
+        $repository = getEloquentProjectRepository();
 
         $repository->save(createProject(1, 'group/project1'));
         $repository->save(createProject(2, 'group/project2'));

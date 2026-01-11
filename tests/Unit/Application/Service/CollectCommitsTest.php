@@ -1,6 +1,7 @@
 <?php
 
 use App\Application\DTO\CollectCommitsResult;
+use App\Application\Port\CommitCollectionHistoryRepository;
 use App\Application\Port\CommitRepository;
 use App\Application\Port\GitApi;
 use App\Application\Port\ProjectRepository;
@@ -52,10 +53,21 @@ describe('CollectCommitsの機能', function () {
                 return $arg instanceof Collection && $arg->count() === 2;
             }));
 
+        $mockCommitCollectionHistoryRepository = Mockery::mock(CommitCollectionHistoryRepository::class);
+        $mockCommitCollectionHistoryRepository->shouldReceive('findById')
+            ->once()
+            ->andReturn(null);
+        $mockCommitCollectionHistoryRepository->shouldReceive('save')
+            ->once()
+            ->andReturnUsing(function ($history) {
+                return $history;
+            });
+
         $service = new CollectCommitsService(
             $mockProjectRepository,
             $mockGitApi,
-            $mockCommitRepository
+            $mockCommitRepository,
+            $mockCommitCollectionHistoryRepository
         );
 
         $result = $service->execute($projectId, $branchName);
@@ -78,11 +90,13 @@ describe('CollectCommitsの機能', function () {
 
         $mockGitApi = Mockery::mock(GitApi::class);
         $mockCommitRepository = Mockery::mock(CommitRepository::class);
+        $mockCommitCollectionHistoryRepository = Mockery::mock(CommitCollectionHistoryRepository::class);
 
         $service = new CollectCommitsService(
             $mockProjectRepository,
             $mockGitApi,
-            $mockCommitRepository
+            $mockCommitRepository,
+            $mockCommitCollectionHistoryRepository
         );
 
         $result = $service->execute($projectId, $branchName);
@@ -111,11 +125,13 @@ describe('CollectCommitsの機能', function () {
             ->andThrow(new GitLabApiException('Branch not found'));
 
         $mockCommitRepository = Mockery::mock(CommitRepository::class);
+        $mockCommitCollectionHistoryRepository = Mockery::mock(CommitCollectionHistoryRepository::class);
 
         $service = new CollectCommitsService(
             $mockProjectRepository,
             $mockGitApi,
-            $mockCommitRepository
+            $mockCommitRepository,
+            $mockCommitCollectionHistoryRepository
         );
 
         $result = $service->execute($projectId, $branchName);
@@ -157,10 +173,18 @@ describe('CollectCommitsの機能', function () {
                 return $arg instanceof Collection && $arg->count() === 1;
             }));
 
+        $mockCommitCollectionHistoryRepository = Mockery::mock(CommitCollectionHistoryRepository::class);
+        $mockCommitCollectionHistoryRepository->shouldReceive('save')
+            ->once()
+            ->andReturnUsing(function ($history) {
+                return $history;
+            });
+
         $service = new CollectCommitsService(
             $mockProjectRepository,
             $mockGitApi,
-            $mockCommitRepository
+            $mockCommitRepository,
+            $mockCommitCollectionHistoryRepository
         );
 
         $result = $service->execute($projectId, $branchName, $sinceDate);
@@ -201,10 +225,21 @@ describe('CollectCommitsの機能', function () {
                 return $arg instanceof Collection && $arg->count() === 2;
             }));
 
+        $mockCommitCollectionHistoryRepository = Mockery::mock(CommitCollectionHistoryRepository::class);
+        $mockCommitCollectionHistoryRepository->shouldReceive('findById')
+            ->once()
+            ->andReturn(null);
+        $mockCommitCollectionHistoryRepository->shouldReceive('save')
+            ->once()
+            ->andReturnUsing(function ($history) {
+                return $history;
+            });
+
         $service = new CollectCommitsService(
             $mockProjectRepository,
             $mockGitApi,
-            $mockCommitRepository
+            $mockCommitRepository,
+            $mockCommitCollectionHistoryRepository
         );
 
         $result = $service->execute($projectId, $branchName);
@@ -235,11 +270,16 @@ describe('CollectCommitsの機能', function () {
             ->andThrow(new GitLabApiException('API connection error'));
 
         $mockCommitRepository = Mockery::mock(CommitRepository::class);
+        $mockCommitCollectionHistoryRepository = Mockery::mock(CommitCollectionHistoryRepository::class);
+        $mockCommitCollectionHistoryRepository->shouldReceive('findById')
+            ->once()
+            ->andReturn(null);
 
         $service = new CollectCommitsService(
             $mockProjectRepository,
             $mockGitApi,
-            $mockCommitRepository
+            $mockCommitRepository,
+            $mockCommitCollectionHistoryRepository
         );
 
         $result = $service->execute($projectId, $branchName);
@@ -278,10 +318,16 @@ describe('CollectCommitsの機能', function () {
             ->once()
             ->andThrow(new \Exception('Database error'));
 
+        $mockCommitCollectionHistoryRepository = Mockery::mock(CommitCollectionHistoryRepository::class);
+        $mockCommitCollectionHistoryRepository->shouldReceive('findById')
+            ->once()
+            ->andReturn(null);
+
         $service = new CollectCommitsService(
             $mockProjectRepository,
             $mockGitApi,
-            $mockCommitRepository
+            $mockCommitRepository,
+            $mockCommitCollectionHistoryRepository
         );
 
         $result = $service->execute($projectId, $branchName);

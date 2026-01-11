@@ -5,6 +5,7 @@ use App\Domain\ValueObjects\Additions;
 use App\Domain\ValueObjects\AuthorEmail;
 use App\Domain\ValueObjects\AuthorName;
 use App\Domain\ValueObjects\BranchName;
+use App\Domain\ValueObjects\CommitId;
 use App\Domain\ValueObjects\CommitMessage;
 use App\Domain\ValueObjects\CommitSha;
 use App\Domain\ValueObjects\CommittedDate;
@@ -23,9 +24,11 @@ function createCommit(
     int $deletions = 50
 ): Commit {
     return new Commit(
-        projectId: new ProjectId($projectId),
-        branchName: new BranchName($branchName),
-        sha: new CommitSha($sha),
+        id: new CommitId(
+            projectId: new ProjectId($projectId),
+            branchName: new BranchName($branchName),
+            sha: new CommitSha($sha)
+        ),
         message: new CommitMessage($message),
         committedDate: new CommittedDate(new \DateTime($committedDate)),
         authorName: new AuthorName($authorName),
@@ -38,9 +41,10 @@ function createCommit(
 test('すべてのフィールドでCommitエンティティを作成できる', function () {
     $commit = createCommit();
 
-    expect($commit->projectId)->toBeInstanceOf(ProjectId::class);
-    expect($commit->branchName)->toBeInstanceOf(BranchName::class);
-    expect($commit->sha)->toBeInstanceOf(CommitSha::class);
+    expect($commit->id)->toBeInstanceOf(CommitId::class);
+    expect($commit->id->projectId)->toBeInstanceOf(ProjectId::class);
+    expect($commit->id->branchName)->toBeInstanceOf(BranchName::class);
+    expect($commit->id->sha)->toBeInstanceOf(CommitSha::class);
     expect($commit->message)->toBeInstanceOf(CommitMessage::class);
     expect($commit->committedDate)->toBeInstanceOf(CommittedDate::class);
     expect($commit->authorName)->toBeInstanceOf(AuthorName::class);
@@ -52,9 +56,7 @@ test('すべてのフィールドでCommitエンティティを作成できる',
 test('Commitエンティティは不変である', function () {
     $commit = createCommit();
 
-    expect($commit)->toHaveProperty('projectId');
-    expect($commit)->toHaveProperty('branchName');
-    expect($commit)->toHaveProperty('sha');
+    expect($commit)->toHaveProperty('id');
     expect($commit)->toHaveProperty('message');
     expect($commit)->toHaveProperty('committedDate');
     expect($commit)->toHaveProperty('authorName');

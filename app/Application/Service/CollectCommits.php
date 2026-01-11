@@ -4,10 +4,13 @@ namespace App\Application\Service;
 
 use App\Application\Contract\CollectCommits as CollectCommitsInterface;
 use App\Application\DTO\CollectCommitsResult;
+use App\Application\Port\CommitCollectionHistoryRepository;
 use App\Application\Port\CommitRepository;
 use App\Application\Port\GitApi;
 use App\Application\Port\ProjectRepository;
+use App\Domain\CommitCollectionHistory;
 use App\Domain\ValueObjects\BranchName;
+use App\Domain\ValueObjects\CommitCollectionHistoryId;
 use App\Domain\ValueObjects\ProjectId;
 use App\Infrastructure\GitLab\Exceptions\GitLabApiException;
 
@@ -19,7 +22,8 @@ class CollectCommits extends BaseService implements CollectCommitsInterface
     public function __construct(
         private readonly ProjectRepository $projectRepository,
         private readonly GitApi $gitApi,
-        private readonly CommitRepository $commitRepository
+        private readonly CommitRepository $commitRepository,
+        private readonly CommitCollectionHistoryRepository $commitCollectionHistoryRepository
     ) {}
 
     /**
@@ -47,13 +51,42 @@ class CollectCommits extends BaseService implements CollectCommitsInterface
             // ブランチ存在検証
             $this->gitApi->validateBranch($projectId, $branchName);
 
+            // sinceDateがnullの場合、収集履歴から最新日時を取得して自動判定
+            if ($sinceDate === null) {
+                try {
+                    $historyId = new CommitCollectionHistoryId($projectId, $branchName);
+                    $history = $this->commitCollectionHistoryRepository->findById($historyId);
+                    if ($history !== null) {
+                        $sinceDate = $history->latestCommittedDate->value;
+                    }
+                } catch (\Exception $e) {
+                    // エラーが発生した場合、フォールバック動作として全コミットを収集
+                    $sinceDate = null;
+                }
+            }
+
             // コミット取得
             $commits = $this->gitApi->getCommits($projectId, $branchName, $sinceDate);
             $collectedCount = $commits->count();
 
-            // コミット永続化
-            $this->transaction(function () use ($commits) {
+            // コミット永続化と収集履歴の記録を同一トランザクションで実行
+            $this->transaction(function () use ($commits, $projectId, $branchName) {
                 $this->commitRepository->saveMany($commits);
+
+                // コミットが収集された場合、収集履歴を記録
+                if ($commits->isNotEmpty()) {
+                    // 収集したコミットの最新日時を取得（committedDateで降順ソートして最初の要素を取得）
+                    $latestCommit = $commits->sortByDesc(fn ($commit) => $commit->committedDate->value->getTimestamp())->first();
+                    if ($latestCommit !== null) {
+                        // 収集履歴を作成または更新
+                        $historyId = new CommitCollectionHistoryId($projectId, $branchName);
+                        $history = new CommitCollectionHistory(
+                            id: $historyId,
+                            latestCommittedDate: $latestCommit->committedDate
+                        );
+                        $this->commitCollectionHistoryRepository->save($history);
+                    }
+                }
             });
 
             return new CollectCommitsResult(
