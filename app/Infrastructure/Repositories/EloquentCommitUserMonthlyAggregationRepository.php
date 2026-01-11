@@ -96,21 +96,38 @@ class EloquentCommitUserMonthlyAggregationRepository implements CommitUserMonthl
 
     /**
      * 利用可能なユーザー一覧を取得
+     * メールアドレスが同じユーザーは1つにまとめる（最も多く使われている名前を使用）
      *
      * @return Collection<int, UserInfo>
      */
     public function findAllUsers(): Collection
     {
-        return CommitUserMonthlyAggregationEloquentModel::select('author_email', 'author_name')
-            ->distinct()
-            ->orderBy('author_name')
+        // メールアドレスと名前の組み合わせを取得
+        $userData = CommitUserMonthlyAggregationEloquentModel::select('author_email', 'author_name')
             ->get()
-            ->map(function ($model) {
-                return new UserInfo(
-                    email: new AuthorEmail($model->author_email),
-                    name: new AuthorName($model->author_name)
-                );
-            });
+            ->groupBy('author_email')
+            ->map(function ($group) {
+                // 各メールアドレスに対して、最も多く使われている名前を取得
+                /** @var Collection<string, int> */
+                $nameCounts = $group->countBy('author_name');
+                // カウント数の降順でソートして、最も多く使われている名前を取得
+                $mostUsedName = $nameCounts->sortDesc()->keys()->first();
+
+                return [
+                    'author_email' => $group->first()?->author_email,
+                    'author_name' => $mostUsedName,
+                ];
+            })
+            ->values()
+            ->sortBy('author_name')
+            ->values();
+
+        return $userData->map(function ($user) {
+            return new UserInfo(
+                email: new AuthorEmail($user['author_email']),
+                name: new AuthorName($user['author_name'])
+            );
+        });
     }
 
     /**

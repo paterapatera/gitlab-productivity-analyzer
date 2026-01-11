@@ -264,7 +264,7 @@ describe('findAllUsers()メソッド', function () {
 
         // ユーザー名でソートされていることを確認（null値は最後に来る）
         $userNames = $result->map(fn ($userInfo) => $userInfo->name->value)->toArray();
-        expect($userNames)->toBe(['User One', 'User Two', null]);
+        expect($userNames)->toBe(['', 'User One', 'User Two']);
 
         // 各ユーザーが正しく変換されていることを確認
         $user1 = $result->first(fn ($userInfo) => $userInfo->email->value === 'user1@example.com');
@@ -273,7 +273,33 @@ describe('findAllUsers()メソッド', function () {
 
         $user3 = $result->first(fn ($userInfo) => $userInfo->email->value === 'user3@example.com');
         expect($user3)->not->toBeNull();
-        expect($user3->name->value)->toBeNull();
+        expect($user3->name->value)->toBe('');
+    });
+
+    test('同じメールアドレスで異なる名前を持つ場合、最も多く使われている名前を使用する', function () {
+        setupProjectForRepositoryTest(1, 'group/project1');
+        setupProjectForRepositoryTest(2, 'group/project2');
+
+        $repository = getEloquentCommitUserMonthlyAggregationRepository();
+
+        // 同じメールアドレスで異なる名前を持つデータを作成
+        // 'John Doe'が3回、'John Smith'が2回使用されているため、'John Doe'が選択される
+        $repository->saveMany(collect([
+            createCommitUserMonthlyAggregation(1, 'main', 'john@example.com', 2024, 1, 'John Doe'),
+            createCommitUserMonthlyAggregation(1, 'main', 'john@example.com', 2024, 2, 'John Doe'),
+            createCommitUserMonthlyAggregation(2, 'main', 'john@example.com', 2024, 1, 'John Doe'),
+            createCommitUserMonthlyAggregation(1, 'main', 'john@example.com', 2024, 3, 'John Smith'),
+            createCommitUserMonthlyAggregation(2, 'main', 'john@example.com', 2024, 2, 'John Smith'),
+        ]));
+
+        $result = $repository->findAllUsers();
+
+        expect($result)->toBeInstanceOf(Collection::class);
+        expect($result->count())->toBe(1); // メールアドレスで統合されて1ユーザー
+
+        $john = $result->first(fn ($userInfo) => $userInfo->email->value === 'john@example.com');
+        expect($john)->not->toBeNull();
+        expect($john->name->value)->toBe('John Doe'); // 最も多く使われている名前
     });
 
     test('集計データが存在しない場合、空のコレクションを返す', function () {

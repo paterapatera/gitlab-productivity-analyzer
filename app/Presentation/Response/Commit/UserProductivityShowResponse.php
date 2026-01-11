@@ -76,17 +76,21 @@ class UserProductivityShowResponse
      */
     private function buildChartData(array $aggregations): array
     {
+        // リポジトリで統合されたユーザー情報から、メールアドレス => 名前のマップを作成
+        $userInfoMap = [];
+        foreach ($this->users as $user) {
+            assert($user->email->value !== null);
+            $userInfoMap[$user->email->value] = $user->name->value ?: 'Unknown';
+        }
+
         // ユーザーごと（author_email）、月ごとにグループ化して統合
         $userMonthData = [];
-        $userInfoMap = []; // author_email => ユーザー名のマップ
 
         foreach ($aggregations as $agg) {
             $authorEmail = $agg['author_email'];
-            $authorName = $agg['author_name'] ?? 'Unknown';
 
             if (! isset($userMonthData[$authorEmail])) {
                 $userMonthData[$authorEmail] = [];
-                $userInfoMap[$authorEmail] = $authorName;
             }
 
             $month = $agg['month'];
@@ -110,7 +114,7 @@ class UserProductivityShowResponse
             $monthData = ['month' => sprintf('%d月', $month)];
 
             foreach ($userMonthData as $authorEmail => $monthValues) {
-                $userName = $userInfoMap[$authorEmail];
+                $userName = $userInfoMap[$authorEmail] ?? 'Unknown';
                 $monthValue = $monthValues[$month] ?? ['additions' => 0, 'deletions' => 0];
 
                 // ユーザーごとの合計行数を設定
@@ -132,17 +136,21 @@ class UserProductivityShowResponse
      */
     private function buildTableData(array $aggregations): array
     {
+        // リポジトリで統合されたユーザー情報から、メールアドレス => 名前のマップを作成
+        $userInfoMap = [];
+        foreach ($this->users as $user) {
+            assert($user->email->value !== null);
+            $userInfoMap[$user->email->value] = $user->name->value ?: 'Unknown';
+        }
+
         // ユーザーごと（author_email）、月ごとにグループ化して統合
         $userMonthData = [];
-        $userInfoMap = []; // author_email => ユーザー名のマップ
 
         foreach ($aggregations as $agg) {
             $authorEmail = $agg['author_email'];
-            $authorName = $agg['author_name'] ?? 'Unknown';
 
             if (! isset($userMonthData[$authorEmail])) {
                 $userMonthData[$authorEmail] = [];
-                $userInfoMap[$authorEmail] = $authorName;
             }
 
             $month = $agg['month'];
@@ -171,7 +179,7 @@ class UserProductivityShowResponse
 
             $tableData[] = [
                 'userKey' => $authorEmail,
-                'userName' => $userInfoMap[$authorEmail],
+                'userName' => $userInfoMap[$authorEmail] ?? 'Unknown',
                 'months' => $monthTotals,
             ];
         }
@@ -181,17 +189,27 @@ class UserProductivityShowResponse
 
     /**
      * ユーザー名のリストを構築
+     * リポジトリで統合されたユーザー情報から取得
      *
      * @param  array<int, array<string, mixed>>  $aggregations
      * @return array<int, string>
      */
     private function buildUserNames(array $aggregations): array
     {
-        $userNames = [];
+        // 集計データに含まれるメールアドレスのセットを作成
+        $emailSet = [];
         foreach ($aggregations as $agg) {
-            $userName = $agg['author_name'] ?? 'Unknown';
-            if (! in_array($userName, $userNames, true)) {
-                $userNames[] = $userName;
+            $emailSet[$agg['author_email']] = true;
+        }
+
+        // リポジトリで統合されたユーザー情報から、集計データに含まれるユーザーの名前を取得
+        $userNames = [];
+        foreach ($this->users as $user) {
+            if (isset($emailSet[$user->email->value ?? ''])) {
+                $userName = $user->name->value ?: 'Unknown';
+                if (! in_array($userName, $userNames, true)) {
+                    $userNames[] = $userName;
+                }
             }
         }
         sort($userNames);
