@@ -19,7 +19,7 @@ import {
 import { userProductivity } from '@/routes/commits';
 import { UserProductivityPageProps } from '@/types/user';
 import { Head, router } from '@inertiajs/react';
-import { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
     Bar,
     BarChart,
@@ -169,6 +169,22 @@ export default function UserProductivity({
         return map;
     }, [userNames]);
 
+    // 色を暗くする関数（削除行用）
+    const darkenColor = (color: string, amount: number = 0.3): string => {
+        // #RRGGBB形式の色をRGBに変換
+        const hex = color.replace('#', '');
+        const r = parseInt(hex.substring(0, 2), 16);
+        const g = parseInt(hex.substring(2, 4), 16);
+        const b = parseInt(hex.substring(4, 6), 16);
+
+        // 各色成分を暗くする（0-1の範囲で減算）
+        const newR = Math.max(0, Math.round(r * (1 - amount)));
+        const newG = Math.max(0, Math.round(g * (1 - amount)));
+        const newB = Math.max(0, Math.round(b * (1 - amount)));
+
+        return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
+    };
+
     return (
         <>
             <Head title="ユーザー生産性" />
@@ -280,19 +296,41 @@ export default function UserProductivity({
                                         <XAxis dataKey="month" />
                                         <YAxis />
                                         <Tooltip />
-                                        <Legend />
-                                        {userNames.map((userName) => (
-                                            <Bar
-                                                key={userName}
-                                                dataKey={`${userName}_total`}
-                                                fill={
-                                                    userColorMap.get(
-                                                        userName,
-                                                    ) || '#3b82f6'
+                                        <Legend
+                                            formatter={(value, entry) => {
+                                                // 削除行（_deletionsで終わる）は非表示
+                                                if (
+                                                    entry?.dataKey
+                                                        ?.toString()
+                                                        .endsWith('_deletions')
+                                                ) {
+                                                    return null;
                                                 }
-                                                name={userName}
-                                            />
-                                        ))}
+                                                return value;
+                                            }}
+                                        />
+                                        {userNames.map((userName) => {
+                                            const userColor =
+                                                userColorMap.get(userName) ||
+                                                '#3b82f6';
+                                            const deletionColor =
+                                                darkenColor(userColor);
+                                            return (
+                                                <React.Fragment key={userName}>
+                                                    <Bar
+                                                        dataKey={`${userName}_additions`}
+                                                        stackId={userName}
+                                                        fill={userColor}
+                                                        name={userName}
+                                                    />
+                                                    <Bar
+                                                        dataKey={`${userName}_deletions`}
+                                                        stackId={userName}
+                                                        fill={deletionColor}
+                                                    />
+                                                </React.Fragment>
+                                            );
+                                        })}
                                     </BarChart>
                                 </ResponsiveContainer>
                             </div>

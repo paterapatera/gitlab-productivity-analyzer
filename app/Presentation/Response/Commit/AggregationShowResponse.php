@@ -142,8 +142,9 @@ class AggregationShowResponse
                 $userName = $userInfoMap[$userKey];
                 $monthValue = $monthValues[$month] ?? ['additions' => 0, 'deletions' => 0];
 
-                // ユーザーごとの合計行数を設定
-                $monthData[sprintf('%s_total', $userName)] = $monthValue['additions'] + $monthValue['deletions'];
+                // ユーザーごとの追加行数と削除行数を設定（積み上げグラフ用）
+                $monthData[sprintf('%s_additions', $userName)] = $monthValue['additions'];
+                $monthData[sprintf('%s_deletions', $userName)] = $monthValue['deletions'];
             }
 
             $chartData[] = $monthData;
