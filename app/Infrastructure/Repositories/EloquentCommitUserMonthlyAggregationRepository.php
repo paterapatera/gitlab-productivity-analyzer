@@ -4,6 +4,7 @@ namespace App\Infrastructure\Repositories;
 
 use App\Application\Port\CommitUserMonthlyAggregationRepository;
 use App\Domain\CommitUserMonthlyAggregation;
+use App\Domain\UserInfo;
 use App\Domain\ValueObjects\Additions;
 use App\Domain\ValueObjects\AggregationMonth;
 use App\Domain\ValueObjects\AggregationYear;
@@ -87,6 +88,62 @@ class EloquentCommitUserMonthlyAggregationRepository implements CommitUserMonthl
 
         if ($authorEmail !== null) {
             $query->where('author_email', $authorEmail);
+        }
+
+        return $query->get()
+            ->map($this->toEntity(...));
+    }
+
+    /**
+     * 利用可能なユーザー一覧を取得
+     *
+     * @return Collection<int, UserInfo>
+     */
+    public function findAllUsers(): Collection
+    {
+        return CommitUserMonthlyAggregationEloquentModel::select('author_email', 'author_name')
+            ->distinct()
+            ->orderBy('author_name')
+            ->get()
+            ->map(function ($model) {
+                return new UserInfo(
+                    email: new AuthorEmail($model->author_email),
+                    name: new AuthorName($model->author_name)
+                );
+            });
+    }
+
+    /**
+     * 利用可能な年一覧を取得
+     *
+     * @return Collection<int, int>
+     */
+    public function findAvailableYears(): Collection
+    {
+        return CommitUserMonthlyAggregationEloquentModel::select('year')
+            ->distinct()
+            ->orderBy('year')
+            ->pluck('year');
+    }
+
+    /**
+     * ユーザー配列と年でフィルタリングして集計データを取得
+     * プロジェクト・ブランチは指定しない（全リポジトリから取得）
+     *
+     * @param  array<string>  $authorEmails  ユーザーメールアドレスの配列。空配列`[]`の場合は全ユーザーを取得（フィルタリングなし）。nullは使用しない（常に配列として受け取る）
+     * @param  int|null  $year  年。nullの場合は全年を取得（フィルタリングなし）
+     * @return Collection<int, CommitUserMonthlyAggregation>
+     */
+    public function findByUsersAndYear(array $authorEmails, ?int $year): Collection
+    {
+        $query = CommitUserMonthlyAggregationEloquentModel::query();
+
+        if (count($authorEmails) > 0) {
+            $query->whereIn('author_email', $authorEmails);
+        }
+
+        if ($year !== null) {
+            $query->where('year', $year);
         }
 
         return $query->get()

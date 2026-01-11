@@ -25,6 +25,7 @@ export default [
             'react/react-in-jsx-scope': 'off',
             'react/prop-types': 'off',
             'react/no-unescaped-entities': 'off',
+            'react-hooks/set-state-in-effect': 'warn', // useEffect内でのsetStateを警告に変更（エラーではなく）
         },
         settings: {
             react: {

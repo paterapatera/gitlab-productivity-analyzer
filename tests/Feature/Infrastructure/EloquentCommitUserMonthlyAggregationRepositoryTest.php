@@ -1,6 +1,7 @@
 <?php
 
 use App\Domain\CommitUserMonthlyAggregation;
+use App\Domain\UserInfo;
 use App\Domain\ValueObjects\BranchName;
 use App\Domain\ValueObjects\ProjectId;
 use App\Infrastructure\Repositories\EloquentCommitUserMonthlyAggregationRepository;
@@ -235,6 +236,169 @@ describe('findByProjectAndBranch()メソッド', function () {
             new ProjectId(1),
             new BranchName('main')
         );
+
+        expect($result)->toBeInstanceOf(Collection::class);
+        expect($result->count())->toBe(0);
+    });
+});
+
+describe('findAllUsers()メソッド', function () {
+    test('ユーザー一覧が正しく取得され、UserInfoエンティティに変換される', function () {
+        setupProjectForRepositoryTest(1, 'group/project1');
+        setupProjectForRepositoryTest(2, 'group/project2');
+
+        $repository = getEloquentCommitUserMonthlyAggregationRepository();
+
+        $repository->saveMany(collect([
+            createCommitUserMonthlyAggregation(1, 'main', 'user1@example.com', 2024, 1, 'User One'),
+            createCommitUserMonthlyAggregation(1, 'main', 'user2@example.com', 2024, 1, 'User Two'),
+            createCommitUserMonthlyAggregation(2, 'main', 'user1@example.com', 2024, 1, 'User One'),
+            createCommitUserMonthlyAggregation(1, 'main', 'user3@example.com', 2024, 1, null),
+        ]));
+
+        $result = $repository->findAllUsers();
+
+        expect($result)->toBeInstanceOf(Collection::class);
+        expect($result->count())->toBe(3); // 重複を除去して3ユーザー
+        expect($result->every(fn ($userInfo) => $userInfo instanceof UserInfo))->toBeTrue();
+
+        // ユーザー名でソートされていることを確認（null値は最後に来る）
+        $userNames = $result->map(fn ($userInfo) => $userInfo->name->value)->toArray();
+        expect($userNames)->toBe(['User One', 'User Two', null]);
+
+        // 各ユーザーが正しく変換されていることを確認
+        $user1 = $result->first(fn ($userInfo) => $userInfo->email->value === 'user1@example.com');
+        expect($user1)->not->toBeNull();
+        expect($user1->name->value)->toBe('User One');
+
+        $user3 = $result->first(fn ($userInfo) => $userInfo->email->value === 'user3@example.com');
+        expect($user3)->not->toBeNull();
+        expect($user3->name->value)->toBeNull();
+    });
+
+    test('集計データが存在しない場合、空のコレクションを返す', function () {
+        $repository = getEloquentCommitUserMonthlyAggregationRepository();
+
+        $result = $repository->findAllUsers();
+
+        expect($result)->toBeInstanceOf(Collection::class);
+        expect($result->count())->toBe(0);
+    });
+});
+
+describe('findAvailableYears()メソッド', function () {
+    test('年一覧が正しく取得され、昇順でソートされる', function () {
+        setupProjectForRepositoryTest(1, 'group/project1');
+        setupProjectForRepositoryTest(2, 'group/project2');
+
+        $repository = getEloquentCommitUserMonthlyAggregationRepository();
+
+        $repository->saveMany(collect([
+            createCommitUserMonthlyAggregation(1, 'main', 'test@example.com', 2024, 1),
+            createCommitUserMonthlyAggregation(1, 'main', 'test@example.com', 2025, 1),
+            createCommitUserMonthlyAggregation(2, 'main', 'test@example.com', 2023, 1),
+            createCommitUserMonthlyAggregation(1, 'main', 'test@example.com', 2024, 2),
+        ]));
+
+        $result = $repository->findAvailableYears();
+
+        expect($result)->toBeInstanceOf(Collection::class);
+        expect($result->count())->toBe(3); // 重複を除去して3年
+        expect($result->toArray())->toBe([2023, 2024, 2025]); // 昇順でソート
+    });
+
+    test('集計データが存在しない場合、空のコレクションを返す', function () {
+        $repository = getEloquentCommitUserMonthlyAggregationRepository();
+
+        $result = $repository->findAvailableYears();
+
+        expect($result)->toBeInstanceOf(Collection::class);
+        expect($result->count())->toBe(0);
+    });
+});
+
+describe('findByUsersAndYear()メソッド', function () {
+    test('空配列の場合は全ユーザーを取得', function () {
+        setupProjectForRepositoryTest(1, 'group/project1');
+        setupProjectForRepositoryTest(2, 'group/project2');
+
+        $repository = getEloquentCommitUserMonthlyAggregationRepository();
+
+        $repository->saveMany(collect([
+            createCommitUserMonthlyAggregation(1, 'main', 'user1@example.com', 2024, 1),
+            createCommitUserMonthlyAggregation(1, 'main', 'user2@example.com', 2024, 1),
+            createCommitUserMonthlyAggregation(2, 'main', 'user1@example.com', 2024, 1),
+            createCommitUserMonthlyAggregation(1, 'main', 'user3@example.com', 2024, 1),
+        ]));
+
+        $result = $repository->findByUsersAndYear([], null);
+
+        expect($result)->toBeInstanceOf(Collection::class);
+        expect($result->count())->toBe(4); // 全データを取得
+    });
+
+    test('ユーザーフィルターで指定されたユーザーのデータのみを取得', function () {
+        setupProjectForRepositoryTest(1, 'group/project1');
+        setupProjectForRepositoryTest(2, 'group/project2');
+
+        $repository = getEloquentCommitUserMonthlyAggregationRepository();
+
+        $repository->saveMany(collect([
+            createCommitUserMonthlyAggregation(1, 'main', 'user1@example.com', 2024, 1),
+            createCommitUserMonthlyAggregation(1, 'main', 'user2@example.com', 2024, 1),
+            createCommitUserMonthlyAggregation(2, 'main', 'user1@example.com', 2024, 1),
+            createCommitUserMonthlyAggregation(1, 'main', 'user3@example.com', 2024, 1),
+        ]));
+
+        $result = $repository->findByUsersAndYear(['user1@example.com', 'user2@example.com'], null);
+
+        expect($result)->toBeInstanceOf(Collection::class);
+        expect($result->count())->toBe(3); // user1とuser2のデータ
+        expect($result->every(fn ($agg) => in_array($agg->id->authorEmail->value, ['user1@example.com', 'user2@example.com'])))->toBeTrue();
+    });
+
+    test('年フィルターで指定された年のデータのみを取得', function () {
+        setupProjectForRepositoryTest(1, 'group/project1');
+
+        $repository = getEloquentCommitUserMonthlyAggregationRepository();
+
+        $repository->saveMany(collect([
+            createCommitUserMonthlyAggregation(1, 'main', 'test@example.com', 2024, 1),
+            createCommitUserMonthlyAggregation(1, 'main', 'test@example.com', 2024, 2),
+            createCommitUserMonthlyAggregation(1, 'main', 'test@example.com', 2025, 1),
+        ]));
+
+        $result = $repository->findByUsersAndYear([], 2024);
+
+        expect($result)->toBeInstanceOf(Collection::class);
+        expect($result->count())->toBe(2); // 2024年のデータのみ
+        expect($result->every(fn ($agg) => $agg->id->year->value === 2024))->toBeTrue();
+    });
+
+    test('ユーザーフィルターと年フィルターの両方でフィルタリング', function () {
+        setupProjectForRepositoryTest(1, 'group/project1');
+        setupProjectForRepositoryTest(2, 'group/project2');
+
+        $repository = getEloquentCommitUserMonthlyAggregationRepository();
+
+        $repository->saveMany(collect([
+            createCommitUserMonthlyAggregation(1, 'main', 'user1@example.com', 2024, 1),
+            createCommitUserMonthlyAggregation(1, 'main', 'user1@example.com', 2024, 2),
+            createCommitUserMonthlyAggregation(1, 'main', 'user2@example.com', 2024, 1),
+            createCommitUserMonthlyAggregation(1, 'main', 'user1@example.com', 2025, 1),
+        ]));
+
+        $result = $repository->findByUsersAndYear(['user1@example.com'], 2024);
+
+        expect($result)->toBeInstanceOf(Collection::class);
+        expect($result->count())->toBe(2); // user1の2024年のデータ
+        expect($result->every(fn ($agg) => $agg->id->authorEmail->value === 'user1@example.com' && $agg->id->year->value === 2024))->toBeTrue();
+    });
+
+    test('集計データが存在しない場合、空のコレクションを返す', function () {
+        $repository = getEloquentCommitUserMonthlyAggregationRepository();
+
+        $result = $repository->findByUsersAndYear([], null);
 
         expect($result)->toBeInstanceOf(Collection::class);
         expect($result->count())->toBe(0);

@@ -254,3 +254,83 @@ export const mockBranches = [
 export const mockYears = [2024, 2023] as const;
 
 export const mockUserNames = ['User One', 'User Two'] as const;
+
+export const mockUserInfo = {
+  author_email: 'user1@example.com',
+  author_name: 'User One',
+} as const;
+
+export const mockUserInfos = [
+  mockUserInfo,
+  {
+    author_email: 'user2@example.com',
+    author_name: 'User Two',
+  },
+  {
+    author_email: 'user3@example.com',
+    author_name: null,
+  },
+] as const;
+
+export const mockUserProductivityChartData = [
+  {
+    month: '1月',
+    'User One_additions': 100,
+    'User One_deletions': 50,
+    'User Two_additions': 200,
+    'User Two_deletions': 100,
+  },
+  {
+    month: '2月',
+    'User One_additions': 150,
+    'User One_deletions': 75,
+    'User Two_additions': 180,
+    'User Two_deletions': 90,
+  },
+  ...Array.from({ length: 10 }, (_, i) => ({
+    month: `${i + 3}月`,
+    'User One_additions': 0,
+    'User One_deletions': 0,
+    'User Two_additions': 0,
+    'User Two_deletions': 0,
+  })),
+] as const;
+
+export const mockUserProductivityTableData = [
+  {
+    userKey: 'user1@example.com',
+    userName: 'User One',
+    months: {
+      1: 150,
+      2: 225,
+      3: 0,
+      4: 0,
+      5: 0,
+      6: 0,
+      7: 0,
+      8: 0,
+      9: 0,
+      10: 0,
+      11: 0,
+      12: 0,
+    },
+  },
+  {
+    userKey: 'user2@example.com',
+    userName: 'User Two',
+    months: {
+      1: 300,
+      2: 270,
+      3: 0,
+      4: 0,
+      5: 0,
+      6: 0,
+      7: 0,
+      8: 0,
+      9: 0,
+      10: 0,
+      11: 0,
+      12: 0,
+    },
+  },
+] as const;

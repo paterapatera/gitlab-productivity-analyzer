@@ -3,6 +3,7 @@
 namespace App\Application\Port;
 
 use App\Domain\CommitUserMonthlyAggregation;
+use App\Domain\UserInfo;
 use App\Domain\ValueObjects\BranchName;
 use App\Domain\ValueObjects\ProjectId;
 use Illuminate\Support\Carbon;
@@ -57,4 +58,28 @@ interface CommitUserMonthlyAggregationRepository
         ?array $months = null,
         ?string $authorEmail = null
     ): Collection;
+
+    /**
+     * 利用可能なユーザー一覧を取得
+     *
+     * @return Collection<int, UserInfo> ユーザー情報エンティティのコレクション
+     */
+    public function findAllUsers(): Collection;
+
+    /**
+     * 利用可能な年一覧を取得
+     *
+     * @return Collection<int, int> 年のコレクション（昇順ソート済み）
+     */
+    public function findAvailableYears(): Collection;
+
+    /**
+     * ユーザー配列と年でフィルタリングして集計データを取得
+     * プロジェクト・ブランチは指定しない（全リポジトリから取得）
+     *
+     * @param  array<string>  $authorEmails  ユーザーメールアドレスの配列。空配列`[]`の場合は全ユーザーを取得（フィルタリングなし）。nullは使用しない（常に配列として受け取る）
+     * @param  int|null  $year  年。nullの場合は全年を取得（フィルタリングなし）
+     * @return Collection<int, CommitUserMonthlyAggregation> 集計データのコレクション
+     */
+    public function findByUsersAndYear(array $authorEmails, ?int $year): Collection;
 }

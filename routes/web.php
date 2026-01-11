@@ -2,6 +2,7 @@
 
 use App\Presentation\Controller\CommitController;
 use App\Presentation\Controller\ProjectController;
+use App\Presentation\Controller\UserProductivityController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -19,3 +20,5 @@ Route::get('/commits/recollect', [CommitController::class, 'recollectShow'])->na
 Route::post('/commits/recollect', [CommitController::class, 'recollect'])->name('commits.recollect.store');
 
 Route::get('/commits/aggregation', [CommitController::class, 'aggregationShow'])->name('commits.aggregation');
+
+Route::get('/commits/user-productivity', [UserProductivityController::class, 'show'])->name('commits.user-productivity');
