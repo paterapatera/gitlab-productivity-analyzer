@@ -54,6 +54,31 @@ class EloquentCommitRepository implements CommitRepository
     }
 
     /**
+     * 指定されたプロジェクトIDとブランチ名で日付範囲内のコミットを取得
+     *
+     * @return Collection<int, Commit>
+     *
+     * @throws \InvalidArgumentException
+     */
+    public function findByProjectAndBranchAndDateRange(
+        ProjectId $projectId,
+        BranchName $branchName,
+        \DateTime $startDate,
+        \DateTime $endDate
+    ): Collection {
+        if ($startDate > $endDate) {
+            throw new \InvalidArgumentException('開始日は終了日より前である必要があります');
+        }
+
+        return CommitEloquentModel::where('project_id', $projectId->value)
+            ->where('branch_name', $branchName->value)
+            ->where('committed_date', '>=', Carbon::instance($startDate))
+            ->where('committed_date', '<=', Carbon::instance($endDate))
+            ->get()
+            ->map($this->toEntity(...));
+    }
+
+    /**
      * エンティティに対応するEloquentモデルを検索
      */
     protected function findModel($entity)

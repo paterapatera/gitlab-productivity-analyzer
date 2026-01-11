@@ -17,3 +17,5 @@ Route::post('/commits/collect', [CommitController::class, 'collect'])->name('com
 
 Route::get('/commits/recollect', [CommitController::class, 'recollectShow'])->name('commits.recollect');
 Route::post('/commits/recollect', [CommitController::class, 'recollect'])->name('commits.recollect.store');
+
+Route::get('/commits/aggregation', [CommitController::class, 'aggregationShow'])->name('commits.aggregation');

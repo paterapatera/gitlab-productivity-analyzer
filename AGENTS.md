@@ -22,6 +22,31 @@ Kiro-style Spec Driven Development implementation on AI-DLC (AI Development Life
 - Before doing any UI, frontend or React development, ALWAYS call the storybook MCP server and shadcn MCP to get further instructions.
 - Before doing any backend development or Inertia development, ALWAYS call the laravel-boost MCP server to get further instructions.
 
+## Backend-First Principle
+**基本方針**: バックエンドでできる処理はバックエンドで行い、フロントエンドでは行わない。
+
+### 原則
+- **データ処理**: ソート、フィルタリング、集計、変換などのデータ処理はバックエンドで実行
+- **バリデーション**: データの検証とバリデーションはバックエンドで実行
+- **計算ロジック**: 複雑な計算やビジネスロジックはバックエンドで実行
+- **データ整形**: グラフ用データ、表用データなどのデータ整形はバックエンドで実行
+
+### フロントエンドの役割
+- **表示**: バックエンドから受け取ったデータを表示する
+- **ユーザーインタラクション**: ユーザーの操作を受け取り、バックエンドにリクエストを送信
+- **UI状態管理**: ローディング状態、エラー表示などのUI状態の管理
+
+### 例外
+- **UI固有の処理**: アニメーション、レイアウト調整など、純粋にUIに関わる処理はフロントエンドで実行
+- **クライアント側の最適化**: 大量データの仮想スクロールなど、パフォーマンス最適化のための処理はフロントエンドで実行可能
+
+### 実装時の判断基準
+1. その処理はバックエンドで実行できるか？
+2. バックエンドで実行することで、テストしやすさ、再利用性、保守性が向上するか？
+3. フロントエンドで実行する明確な理由（パフォーマンス、UXなど）があるか？
+
+上記の質問に「はい」と答えられる場合は、バックエンドで実装することを優先する。
+
 ## Storybook Guidelines
 
 ### Purpose

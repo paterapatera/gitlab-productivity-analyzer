@@ -2,6 +2,7 @@
 
 namespace App\Application\Service;
 
+use App\Application\Contract\AggregateCommits;
 use App\Application\Contract\CollectCommits as CollectCommitsInterface;
 use App\Application\DTO\CollectCommitsResult;
 use App\Application\Port\CommitCollectionHistoryRepository;
@@ -13,6 +14,7 @@ use App\Domain\ValueObjects\BranchName;
 use App\Domain\ValueObjects\CommitCollectionHistoryId;
 use App\Domain\ValueObjects\ProjectId;
 use App\Infrastructure\GitLab\Exceptions\GitLabApiException;
+use Illuminate\Support\Facades\Log;
 
 /**
  * コミットを収集・永続化するサービス
@@ -23,7 +25,8 @@ class CollectCommits extends BaseService implements CollectCommitsInterface
         private readonly ProjectRepository $projectRepository,
         private readonly GitApi $gitApi,
         private readonly CommitRepository $commitRepository,
-        private readonly CommitCollectionHistoryRepository $commitCollectionHistoryRepository
+        private readonly CommitCollectionHistoryRepository $commitCollectionHistoryRepository,
+        private readonly AggregateCommits $aggregateCommits
     ) {}
 
     /**
@@ -88,6 +91,19 @@ class CollectCommits extends BaseService implements CollectCommitsInterface
                     }
                 }
             });
+
+            // コミット保存完了後に集計処理を実行
+            // エラー時はログに記録するのみで、CollectCommitsResultには影響を与えない
+            try {
+                $this->aggregateCommits->execute($projectId, $branchName);
+            } catch (\Exception $e) {
+                Log::error('集計処理でエラーが発生しました', [
+                    'project_id' => $projectId->value,
+                    'branch_name' => $branchName->value,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
+            }
 
             return new CollectCommitsResult(
                 collectedCount: $collectedCount,

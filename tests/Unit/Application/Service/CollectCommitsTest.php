@@ -1,5 +1,6 @@
 <?php
 
+use App\Application\Contract\AggregateCommits;
 use App\Application\DTO\CollectCommitsResult;
 use App\Application\Port\CommitCollectionHistoryRepository;
 use App\Application\Port\CommitRepository;
@@ -63,11 +64,17 @@ describe('CollectCommitsの機能', function () {
                 return $history;
             });
 
+        $mockAggregateCommits = Mockery::mock(AggregateCommits::class);
+        $mockAggregateCommits->shouldReceive('execute')
+            ->once()
+            ->andReturn(new \App\Application\DTO\AggregateCommitsResult(0));
+
         $service = new CollectCommitsService(
             $mockProjectRepository,
             $mockGitApi,
             $mockCommitRepository,
-            $mockCommitCollectionHistoryRepository
+            $mockCommitCollectionHistoryRepository,
+            $mockAggregateCommits
         );
 
         $result = $service->execute($projectId, $branchName);
@@ -91,12 +98,14 @@ describe('CollectCommitsの機能', function () {
         $mockGitApi = Mockery::mock(GitApi::class);
         $mockCommitRepository = Mockery::mock(CommitRepository::class);
         $mockCommitCollectionHistoryRepository = Mockery::mock(CommitCollectionHistoryRepository::class);
+        $mockAggregateCommits = Mockery::mock(AggregateCommits::class);
 
         $service = new CollectCommitsService(
             $mockProjectRepository,
             $mockGitApi,
             $mockCommitRepository,
-            $mockCommitCollectionHistoryRepository
+            $mockCommitCollectionHistoryRepository,
+            $mockAggregateCommits
         );
 
         $result = $service->execute($projectId, $branchName);
@@ -126,12 +135,14 @@ describe('CollectCommitsの機能', function () {
 
         $mockCommitRepository = Mockery::mock(CommitRepository::class);
         $mockCommitCollectionHistoryRepository = Mockery::mock(CommitCollectionHistoryRepository::class);
+        $mockAggregateCommits = Mockery::mock(AggregateCommits::class);
 
         $service = new CollectCommitsService(
             $mockProjectRepository,
             $mockGitApi,
             $mockCommitRepository,
-            $mockCommitCollectionHistoryRepository
+            $mockCommitCollectionHistoryRepository,
+            $mockAggregateCommits
         );
 
         $result = $service->execute($projectId, $branchName);
@@ -180,11 +191,17 @@ describe('CollectCommitsの機能', function () {
                 return $history;
             });
 
+        $mockAggregateCommits = Mockery::mock(AggregateCommits::class);
+        $mockAggregateCommits->shouldReceive('execute')
+            ->once()
+            ->andReturn(new \App\Application\DTO\AggregateCommitsResult(0));
+
         $service = new CollectCommitsService(
             $mockProjectRepository,
             $mockGitApi,
             $mockCommitRepository,
-            $mockCommitCollectionHistoryRepository
+            $mockCommitCollectionHistoryRepository,
+            $mockAggregateCommits
         );
 
         $result = $service->execute($projectId, $branchName, $sinceDate);
@@ -235,11 +252,17 @@ describe('CollectCommitsの機能', function () {
                 return $history;
             });
 
+        $mockAggregateCommits = Mockery::mock(AggregateCommits::class);
+        $mockAggregateCommits->shouldReceive('execute')
+            ->once()
+            ->andReturn(new \App\Application\DTO\AggregateCommitsResult(0));
+
         $service = new CollectCommitsService(
             $mockProjectRepository,
             $mockGitApi,
             $mockCommitRepository,
-            $mockCommitCollectionHistoryRepository
+            $mockCommitCollectionHistoryRepository,
+            $mockAggregateCommits
         );
 
         $result = $service->execute($projectId, $branchName);
@@ -274,12 +297,14 @@ describe('CollectCommitsの機能', function () {
         $mockCommitCollectionHistoryRepository->shouldReceive('findById')
             ->once()
             ->andReturn(null);
+        $mockAggregateCommits = Mockery::mock(AggregateCommits::class);
 
         $service = new CollectCommitsService(
             $mockProjectRepository,
             $mockGitApi,
             $mockCommitRepository,
-            $mockCommitCollectionHistoryRepository
+            $mockCommitCollectionHistoryRepository,
+            $mockAggregateCommits
         );
 
         $result = $service->execute($projectId, $branchName);
@@ -322,12 +347,14 @@ describe('CollectCommitsの機能', function () {
         $mockCommitCollectionHistoryRepository->shouldReceive('findById')
             ->once()
             ->andReturn(null);
+        $mockAggregateCommits = Mockery::mock(AggregateCommits::class);
 
         $service = new CollectCommitsService(
             $mockProjectRepository,
             $mockGitApi,
             $mockCommitRepository,
-            $mockCommitCollectionHistoryRepository
+            $mockCommitCollectionHistoryRepository,
+            $mockAggregateCommits
         );
 
         $result = $service->execute($projectId, $branchName);

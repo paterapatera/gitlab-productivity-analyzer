@@ -23,13 +23,15 @@ if (! function_exists('getCollectCommitsService')) {
         ?ProjectRepository $projectRepository = null,
         ?GitApi $gitApi = null,
         ?CommitRepository $commitRepository = null,
-        ?CommitCollectionHistoryRepository $commitCollectionHistoryRepository = null
+        ?CommitCollectionHistoryRepository $commitCollectionHistoryRepository = null,
+        ?\App\Application\Contract\AggregateCommits $aggregateCommits = null
     ): CollectCommits {
         return new CollectCommits(
             $projectRepository ?? getProjectRepository(),
             $gitApi ?? app(GitApi::class),
             $commitRepository ?? getCommitRepository(),
-            $commitCollectionHistoryRepository ?? getCommitCollectionHistoryRepository()
+            $commitCollectionHistoryRepository ?? getCommitCollectionHistoryRepository(),
+            $aggregateCommits ?? app(\App\Application\Contract\AggregateCommits::class)
         );
     }
 }

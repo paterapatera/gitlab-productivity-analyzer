@@ -35,4 +35,22 @@ interface CommitRepository
      * @return \DateTime|null 最新コミット日時（コミットが存在しない場合は null）
      */
     public function findLatestCommittedDate(ProjectId $projectId, BranchName $branchName): ?\DateTime;
+
+    /**
+     * 指定されたプロジェクトIDとブランチ名で日付範囲内のコミットを取得
+     *
+     * @param  ProjectId  $projectId  プロジェクトID
+     * @param  BranchName  $branchName  ブランチ名
+     * @param  \DateTime  $startDate  開始日時
+     * @param  \DateTime  $endDate  終了日時
+     * @return Collection<int, Commit> コミットのコレクション
+     *
+     * @throws \InvalidArgumentException 開始日が終了日より後の場合
+     */
+    public function findByProjectAndBranchAndDateRange(
+        ProjectId $projectId,
+        BranchName $branchName,
+        \DateTime $startDate,
+        \DateTime $endDate
+    ): Collection;
 }
