@@ -45,6 +45,14 @@
 **Purpose**: プレゼンテーション層。コントローラー、HTTP リクエストの処理、Inertia.js レスポンス、リクエスト/レスポンスの変換  
 **Pattern**: アプリケーション層のユースケースを呼び出し。ビジネスロジックは含まない
 
+**Location**: `/app/Presentation/Request/`  
+**Purpose**: HTTP リクエストのバリデーションと変換  
+**Pattern**: `BaseRequest` を継承し、`rules()` メソッドでバリデーションルールを定義。機能ごとにサブディレクトリで整理（例: `Request/Commit/`, `Request/Project/`）
+
+**Location**: `/app/Presentation/Response/`  
+**Purpose**: アプリケーション層の結果を Inertia.js に渡すための配列に変換  
+**Pattern**: `toArray()` メソッドで Inertia.js に渡す配列を返す。機能ごとにサブディレクトリで整理（例: `Response/Commit/`, `Response/Project/`）。共通の変換ロジックはトレイト（例: `ConvertsProjectsToArray`）で共有
+
 **Location**: `/app/Http/Middleware/`  
 **Purpose**: HTTP ミドルウェア  
 **Example**: `app/Http/Middleware/HandleInertiaRequests.php`

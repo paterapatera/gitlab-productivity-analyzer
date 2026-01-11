@@ -150,6 +150,43 @@ describe('CommitController::aggregationShow()', function () {
         );
     });
 
+    test('ブランチが選択されているが年が選択されていない場合、集計データは空配列を返す', function () {
+        // プロジェクトを作成
+        $projectRepository = getProjectRepository();
+        $project = createProject(1, 'group/project1');
+        $projectRepository->save($project);
+
+        // 収集履歴を作成
+        $historyRepository = getCommitCollectionHistoryRepository();
+        $history = createCommitCollectionHistory(1, 'main', '2024-01-01 12:00:00');
+        $historyRepository->save($history);
+
+        // 集計データを作成
+        $aggregationRepository = app(CommitUserMonthlyAggregationRepository::class);
+        $aggregation = new CommitUserMonthlyAggregation(
+            id: new CommitUserMonthlyAggregationId(
+                projectId: new ProjectId(1),
+                branchName: new BranchName('main'),
+                authorEmail: new AuthorEmail('john@example.com'),
+                year: new AggregationYear(2024),
+                month: new AggregationMonth(1)
+            ),
+            totalAdditions: new Additions(100),
+            totalDeletions: new Deletions(50),
+            commitCount: new CommitCount(5),
+            authorName: new AuthorName('John Doe')
+        );
+        $aggregationRepository->save($aggregation);
+
+        $response = $this->withoutVite()->get('/commits/aggregation?project_id=1&branch_name=main');
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('Commit/Aggregation')
+            ->has('aggregations', 0) // 年が選択されていないため、データは空
+        );
+    });
+
     test('フラッシュメッセージをpropsに追加できる', function () {
         $response = $this->withoutVite()
             ->withSession(['success' => '集計が完了しました。'])

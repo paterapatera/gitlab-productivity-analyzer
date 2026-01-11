@@ -19,7 +19,7 @@ import {
 import { userProductivity } from '@/routes/commits';
 import { UserProductivityPageProps } from '@/types/user';
 import { Head, router } from '@inertiajs/react';
-import { Fragment, useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
     Bar,
     BarChart,
@@ -106,6 +106,68 @@ export default function UserProductivity({
     const hasData = tableData.length > 0;
     const allUsersSelected =
         checkedUsers.length === users.length && users.length > 0;
+
+    // ユーザーごとに色を生成する関数
+    const getUserColor = (userName: string, index: number): string => {
+        // 色相を均等に分散（HSL色空間を使用）
+        const hue = (index * 137.508) % 360; // 黄金角を使用して均等に分散
+        const saturation = 60 + (index % 3) * 10; // 60-80%の範囲で変化
+        const lightness = 45 + (index % 2) * 5; // 45-50%の範囲で変化
+
+        // HSLをRGBに変換
+        const h = hue / 360;
+        const s = saturation / 100;
+        const l = lightness / 100;
+
+        const c = (1 - Math.abs(2 * l - 1)) * s;
+        const x = c * (1 - Math.abs(((h * 6) % 2) - 1));
+        const m = l - c / 2;
+
+        let r = 0;
+        let g = 0;
+        let b = 0;
+
+        if (h * 6 < 1) {
+            r = c;
+            g = x;
+            b = 0;
+        } else if (h * 6 < 2) {
+            r = x;
+            g = c;
+            b = 0;
+        } else if (h * 6 < 3) {
+            r = 0;
+            g = c;
+            b = x;
+        } else if (h * 6 < 4) {
+            r = 0;
+            g = x;
+            b = c;
+        } else if (h * 6 < 5) {
+            r = x;
+            g = 0;
+            b = c;
+        } else {
+            r = c;
+            g = 0;
+            b = x;
+        }
+
+        r = Math.round((r + m) * 255);
+        g = Math.round((g + m) * 255);
+        b = Math.round((b + m) * 255);
+
+        return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+    };
+
+    // ユーザー名と色のマッピングを生成
+    const userColorMap = useMemo(() => {
+        const map = new Map<string, string>();
+        userNames.forEach((userName, index) => {
+            map.set(userName, getUserColor(userName, index));
+        });
+        return map;
+    }, [userNames]);
 
     return (
         <>
@@ -220,22 +282,16 @@ export default function UserProductivity({
                                         <Tooltip />
                                         <Legend />
                                         {userNames.map((userName) => (
-                                            <Fragment key={userName}>
-                                                <Bar
-                                                    key={`${userName}_additions`}
-                                                    dataKey={`${userName}_additions`}
-                                                    stackId={userName}
-                                                    fill="#3b82f6"
-                                                    name={`${userName} (追加)`}
-                                                />
-                                                <Bar
-                                                    key={`${userName}_deletions`}
-                                                    dataKey={`${userName}_deletions`}
-                                                    stackId={userName}
-                                                    fill="#ef4444"
-                                                    name={`${userName} (削除)`}
-                                                />
-                                            </Fragment>
+                                            <Bar
+                                                key={userName}
+                                                dataKey={`${userName}_total`}
+                                                fill={
+                                                    userColorMap.get(
+                                                        userName,
+                                                    ) || '#3b82f6'
+                                                }
+                                                name={userName}
+                                            />
                                         ))}
                                     </BarChart>
                                 </ResponsiveContainer>

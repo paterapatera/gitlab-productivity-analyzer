@@ -353,8 +353,11 @@ git push --no-verify
 ### フロントエンド
 
 - `/resources/js/pages/`: Inertia.js ページコンポーネント
-- `/resources/js/components/ui/`: UI プリミティブコンポーネント
+- `/resources/js/components/ui/`: UI プリミティブコンポーネント（shadcn/ui ベース）
+- `/resources/js/components/common/`: 共通コンポーネント（PageLayout、Sidebar など）
+- `/resources/js/layouts/`: レイアウトコンポーネント（AppLayout など）
 - `/resources/js/types/`: TypeScript 型定義
+- `/resources/js/lib/`: ユーティリティ関数と定数（menu-items など）
 - `/resources/js/test/`: フロントエンドテスト
 - `/stories/`: Storybook ストーリーファイル
 

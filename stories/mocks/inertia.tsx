@@ -158,3 +158,69 @@ export const router = {
   remember: fn(),
   restore: fn(),
 };
+
+/**
+ * Inertia.js の usePage フックのモック実装
+ */
+let globalPageData: {
+  url: string;
+  component: string;
+  props: Record<string, unknown>;
+} = {
+  url: '/projects',
+  component: 'Project/Index',
+  props: {},
+};
+
+const pageDataCallbacks: Set<(data: typeof globalPageData) => void> = new Set();
+
+export const usePage = () => {
+  const [pageData, setPageData] = React.useState(globalPageData);
+
+  React.useEffect(() => {
+    const updatePageData = () => {
+      setPageData(globalPageData);
+    };
+    pageDataCallbacks.add(updatePageData);
+    updatePageData();
+    return () => {
+      pageDataCallbacks.delete(updatePageData);
+    };
+  }, []);
+
+  return pageData;
+};
+
+/**
+ * ページデータを設定する関数（ストーリーから使用）
+ */
+export const setPageData = (data: Partial<typeof globalPageData>) => {
+  globalPageData = { ...globalPageData, ...data };
+  pageDataCallbacks.forEach((cb) => cb(globalPageData));
+};
+
+/**
+ * Inertia.js の Link コンポーネントのモック実装
+ */
+export const Link = ({
+  href,
+  children,
+  ...props
+}: {
+  href: string;
+  children: React.ReactNode;
+  [key: string]: unknown;
+}) => {
+  return (
+    <a
+      href={href}
+      onClick={(e) => {
+        e.preventDefault();
+        router.visit(href);
+      }}
+      {...props}
+    >
+      {children}
+    </a>
+  );
+};

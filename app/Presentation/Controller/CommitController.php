@@ -178,9 +178,10 @@ class CommitController extends BaseController
             }
 
             // 選択されたプロジェクト・ブランチ・年の集計データを取得
+            // ブランチと年の両方が選択されている場合のみデータを取得
             $aggregations = collect([]);
 
-            if ($projectId !== null && $branchName !== null) {
+            if ($projectId !== null && $branchName !== null && $year !== null) {
                 $aggregations = $this->aggregationRepository->findByProjectAndBranch(
                     new ProjectId($projectId),
                     new BranchName($branchName),

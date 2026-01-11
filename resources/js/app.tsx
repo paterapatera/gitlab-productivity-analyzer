@@ -1,18 +1,23 @@
 import '../css/app.css';
 
 import { createInertiaApp } from '@inertiajs/react';
-import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { AppLayout } from './layouts/AppLayout';
 import { createPageTitle } from './lib/inertia-config';
 
 createInertiaApp({
     title: createPageTitle,
-    resolve: (name) =>
-        resolvePageComponent(
-            `./pages/${name}.tsx`,
-            import.meta.glob('./pages/**/*.tsx'),
-        ),
+    resolve: (name) => {
+        const pages = import.meta.glob('./pages/**/*.tsx', { eager: true });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const page = pages[`./pages/${name}.tsx`] as any;
+        page.default.layout =
+            page.default.layout ||
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            ((page: any) => <AppLayout children={page} />);
+        return page;
+    },
     setup({ el, App, props }) {
         const root = createRoot(el);
 
