@@ -1,14 +1,8 @@
 import { FlashMessage } from '@/components/common/FlashMessage';
 import { LoadingButton } from '@/components/common/LoadingButton';
 import { PageLayout } from '@/components/common/PageLayout';
+import { Combobox } from '@/components/ui/combobox';
 import { Input } from '@/components/ui/input';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { CommitPageProps } from '@/types/commit';
 import { Form, Head } from '@inertiajs/react';
 import { RefreshCwIcon } from 'lucide-react';
@@ -45,34 +39,19 @@ export default function Index({ projects, error, success }: CommitPageProps) {
                                         name="project_id"
                                         value={projectId}
                                     />
-                                    <Select
+                                    <Combobox
+                                        id="project_id"
+                                        projects={projects}
                                         value={projectId}
                                         onValueChange={(value) => {
                                             setProjectId(value);
                                             clearErrors('project_id');
                                         }}
+                                        placeholder="プロジェクトを選択してください"
+                                        aria-invalid={!!errors.project_id}
                                         required
-                                    >
-                                        <SelectTrigger
-                                            id="project_id"
-                                            className="w-full"
-                                            aria-invalid={!!errors.project_id}
-                                        >
-                                            <SelectValue placeholder="プロジェクトを選択してください" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {projects.map((project) => (
-                                                <SelectItem
-                                                    key={project.id}
-                                                    value={project.id.toString()}
-                                                >
-                                                    {
-                                                        project.name_with_namespace
-                                                    }
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                        className="w-full"
+                                    />
                                     {errors.project_id && (
                                         <p className="text-sm text-destructive">
                                             {errors.project_id}
