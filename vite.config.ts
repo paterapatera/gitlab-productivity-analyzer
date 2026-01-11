@@ -24,4 +24,16 @@ export default defineConfig({
     esbuild: {
         jsx: 'automatic',
     },
+    build: {
+        rollupOptions: {
+            output: {
+                manualChunks: (id) => {
+                    // rechartsを単一のチャンクにまとめる
+                    if (id.includes('node_modules/recharts')) {
+                        return 'recharts';
+                    }
+                },
+            },
+        },
+    },
 });
