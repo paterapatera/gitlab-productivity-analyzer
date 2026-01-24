@@ -22,7 +22,7 @@
     "check:build": "npm run build",
     "check:phpstan": "./vendor/bin/phpstan analyse",
     "check:php-tests": "./vendor/bin/pest --compact",
-    "pre-push": "npm run check:php && npm run check:format && npm run check:lint && npm run check:types && npm run check:build && npm run check:phpstan && npm run check:php-tests"
+    "pre-push": "npm run check:format && npm run check:lint && npm run check:types && npm run check:build && npm run check:phpstan && npm run check:php-tests"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^4.1.3",

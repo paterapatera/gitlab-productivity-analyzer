@@ -13,7 +13,7 @@ it('renders example page on home route', function () {
     $response = $this->get('/');
 
     $response->assertInertia(
-        fn(Assert $page) => $page
+        fn (Assert $page) => $page
             ->component('example')
     );
 });
@@ -24,7 +24,7 @@ it('does not render welcome page on any route', function () {
     $response = $this->get('/');
 
     $response->assertInertia(
-        fn(Assert $page) => $page
+        fn (Assert $page) => $page
             ->component('example')
     );
 
@@ -52,7 +52,7 @@ it('verifies top page integration', function () {
 
     $response->assertStatus(200);
     $response->assertInertia(
-        fn(Assert $page) => $page
+        fn (Assert $page) => $page
             ->component('example')
     );
 
