@@ -23,6 +23,11 @@ class EloquentCommitRepository implements CommitRepository
     /** @use ConvertsBetweenEntityAndModel<Commit, CommitEloquentModel> */
     use ConvertsBetweenEntityAndModel;
 
+    private static function isStartDateAfterEndDate(\DateTime $startDate, \DateTime $endDate): bool
+    {
+        return $startDate > $endDate;
+    }
+
     /**
      * コミットを保存または更新
      */
@@ -66,7 +71,7 @@ class EloquentCommitRepository implements CommitRepository
         \DateTime $startDate,
         \DateTime $endDate
     ): Collection {
-        if ($startDate > $endDate) {
+        if (self::isStartDateAfterEndDate($startDate, $endDate)) {
             throw new \InvalidArgumentException('開始日は終了日より前である必要があります');
         }
 

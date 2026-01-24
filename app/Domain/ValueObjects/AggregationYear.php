@@ -8,10 +8,15 @@ readonly class AggregationYear
 {
     use ComparesValue;
 
+    private static function isValidYear(int $value): bool
+    {
+        return $value >= 1 && $value <= 9999;
+    }
+
     public function __construct(
         public int $value
     ) {
-        if ($this->value < 1 || $this->value > 9999) {
+        if (! self::isValidYear($this->value)) {
             throw new InvalidArgumentException('年は1以上9999以下である必要があります');
         }
     }

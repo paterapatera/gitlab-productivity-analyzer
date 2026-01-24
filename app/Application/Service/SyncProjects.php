@@ -27,7 +27,7 @@ class SyncProjects extends BaseService implements SyncProjectsInterface
      */
     public function execute(): SyncResult
     {
-        try {
+        return $this->executeWithErrorHandling(function () {
             // 外部APIからプロジェクトを取得
             $projects = $this->getProjects->execute();
 
@@ -49,6 +49,13 @@ class SyncProjects extends BaseService implements SyncProjectsInterface
                 deletedCount: $deletedCount,
                 hasErrors: false
             );
+        });
+    }
+
+    private function executeWithErrorHandling(callable $callback): SyncResult
+    {
+        try {
+            return $callback();
         } catch (\Exception $e) {
             return $this->createErrorResult($e->getMessage());
         }

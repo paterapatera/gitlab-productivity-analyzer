@@ -17,6 +17,22 @@ class EloquentProjectRepository implements ProjectRepository
     use ConvertsBetweenEntityAndModel;
 
     /**
+     * @param  ProjectEloquentModel|null  $model
+     */
+    private static function isModelFound($model): bool
+    {
+        return $model !== null;
+    }
+
+    /**
+     * @param  array<int>  $ids
+     */
+    private static function isIdsEmpty(array $ids): bool
+    {
+        return empty($ids);
+    }
+
+    /**
      * 全プロジェクトを取得
      *
      * @return Collection<int, Project>
@@ -61,7 +77,8 @@ class EloquentProjectRepository implements ProjectRepository
     public function delete(Project $project): void
     {
         $model = ProjectEloquentModel::find($project->id->value);
-        if ($model) {
+        if (self::isModelFound($model)) {
+            assert($model !== null);
             $model->delete();
         }
     }
@@ -77,7 +94,7 @@ class EloquentProjectRepository implements ProjectRepository
         $ids = $projectIds->map(fn (ProjectId $projectId) => $projectId->value)->toArray();
 
         // 空のコレクションの場合は全プロジェクトを返す
-        if (empty($ids)) {
+        if (self::isIdsEmpty($ids)) {
             return ProjectEloquentModel::get()
                 ->map($this->toEntity(...));
         }

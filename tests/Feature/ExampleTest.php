@@ -9,19 +9,23 @@ it('returns a successful response', function () {
 });
 
 it('renders example page on home route', function () {
+    $this->withoutVite();
     $response = $this->get('/');
 
-    $response->assertInertia(fn (Assert $page) => $page
-        ->component('example')
+    $response->assertInertia(
+        fn(Assert $page) => $page
+            ->component('example')
     );
 });
 
 it('does not render welcome page on any route', function () {
+    $this->withoutVite();
     // ホームルートが welcome ページをレンダリングしないことを確認
     $response = $this->get('/');
 
-    $response->assertInertia(fn (Assert $page) => $page
-        ->component('example')
+    $response->assertInertia(
+        fn(Assert $page) => $page
+            ->component('example')
     );
 
     // welcome ページコンポーネントが存在しないことを確認
@@ -41,13 +45,15 @@ it('does not have dashboard route', function () {
 });
 
 it('verifies top page integration', function () {
+    $this->withoutVite();
     // タスク 6.1: トップページの動作を確認する
     // ルートパス（/）にアクセスして ExamplePage が正しくレンダリングされることを確認
     $response = $this->get('/');
 
     $response->assertStatus(200);
-    $response->assertInertia(fn (Assert $page) => $page
-        ->component('example')
+    $response->assertInertia(
+        fn(Assert $page) => $page
+            ->component('example')
     );
 
     // ExamplePage コンポーネントが存在することを確認
@@ -55,6 +61,7 @@ it('verifies top page integration', function () {
 });
 
 it('verifies dashboard removal', function () {
+    $this->withoutVite();
     // タスク 6.2: Dashboard 削除の確認を行う
 
     // 1. Dashboard ルートにアクセスして 404 エラーが返されることを確認

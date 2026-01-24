@@ -16,6 +16,14 @@ use Illuminate\Support\Collection;
 trait ConvertsBetweenEntityAndModel
 {
     /**
+     * @param  TModel|null  $model
+     */
+    private static function isModelNotFound($model): bool
+    {
+        return $model === null;
+    }
+
+    /**
      * エンティティを保存または更新
      *
      * @param  TEntity  $entity  保存するエンティティ
@@ -25,10 +33,11 @@ trait ConvertsBetweenEntityAndModel
     {
         $model = $this->findModel($entity);
 
-        if ($model === null) {
+        if (self::isModelNotFound($model)) {
             $model = $this->createModel($entity);
         }
 
+        assert($model !== null);
         $this->updateModelFromEntity($model, $entity);
         $model->save();
 

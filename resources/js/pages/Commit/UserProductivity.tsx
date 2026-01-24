@@ -19,7 +19,7 @@ import {
 import { userProductivity } from '@/routes/commits';
 import { UserProductivityPageProps } from '@/types/user';
 import { Head, router } from '@inertiajs/react';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
     Bar,
     BarChart,
@@ -42,22 +42,10 @@ export default function UserProductivity({
     error,
     success,
 }: UserProductivityPageProps) {
-    // 選択されたユーザーの状態管理
-    // selectedUsersが変更されたときにcheckedUsersを更新するため、useStateの初期値として使用
-    const [checkedUsers, setCheckedUsers] = useState<string[]>(
-        selectedUsers || [],
+    const [localCheckedUsers, setLocalCheckedUsers] = useState<string[]>(
+        selectedUsers ?? [],
     );
-
-    // selectedUsersが変更されたときにcheckedUsersを更新
-    // 注意: useEffect内でのsetStateはReactのベストプラクティスに反するが、
-    // この場合はpropsの変更をローカルステートに反映する必要があるため使用
-    // 代替案として、keyプロップを使用してコンポーネントを再マウントすることも可能だが、
-    // その場合はユーザーのチェック状態が失われるため、この方法を採用
-    useEffect(() => {
-        if (selectedUsers) {
-            setCheckedUsers(selectedUsers);
-        }
-    }, [selectedUsers]);
+    const checkedUsers = selectedUsers ?? localCheckedUsers;
 
     // フィルター変更時にページ遷移
     const handleFilterChange = (year?: string | null, users?: string[]) => {
@@ -67,10 +55,14 @@ export default function UserProductivity({
             query.users = users;
         }
 
-        router.get(userProductivity.url({ query }), {
-            preserveState: true,
-            preserveScroll: true,
-        });
+        router.get(
+            userProductivity.url({ query }),
+            {},
+            {
+                preserveState: true,
+                preserveScroll: true,
+            },
+        );
     };
 
     // 年フィルター変更
@@ -84,7 +76,7 @@ export default function UserProductivity({
             ? [...checkedUsers, userEmail]
             : checkedUsers.filter((email) => email !== userEmail);
 
-        setCheckedUsers(newCheckedUsers);
+        setLocalCheckedUsers(newCheckedUsers);
         handleFilterChange(
             selectedYear?.toString() || undefined,
             newCheckedUsers,
@@ -95,7 +87,7 @@ export default function UserProductivity({
     const handleSelectAll = (checked: boolean) => {
         const allUserEmails = users.map((user) => user.author_email);
         const newCheckedUsers = checked ? allUserEmails : [];
-        setCheckedUsers(newCheckedUsers);
+        setLocalCheckedUsers(newCheckedUsers);
         handleFilterChange(
             selectedYear?.toString() || undefined,
             newCheckedUsers,
@@ -225,7 +217,10 @@ export default function UserProductivity({
                                 <label className="text-sm font-medium">
                                     ユーザー
                                 </label>
-                                <div className="max-h-48 space-y-2 overflow-y-auto rounded-md border p-3">
+                                <div
+                                    className="max-h-48 space-y-2 overflow-y-auto rounded-md border p-3"
+                                    scroll-region
+                                >
                                     <div className="flex items-center space-x-2">
                                         <Checkbox
                                             id="select-all"

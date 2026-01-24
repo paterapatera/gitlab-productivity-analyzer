@@ -41,14 +41,41 @@ class CollectRequest extends BaseRequest
      */
     public function getSinceDate(): ?\DateTime
     {
-        $sinceDate = $this->request->input('since_date');
-        if ($sinceDate === null || $sinceDate === '') {
-            return null;
-        }
+        return $this->request->input('since_date')
+        |> self::selectSinceDate(...);
+    }
 
+    /**
+     * since_date が空かどうかを判定
+     *
+     * @param  string|null  $sinceDate
+     */
+    private static function isSinceDateEmpty($sinceDate): bool
+    {
+        return $sinceDate === null || $sinceDate === '';
+    }
+
+    /**
+     * since_date を選択して DateTime に変換
+     *
+     * @param  string|null  $sinceDate
+     */
+    private static function selectSinceDate($sinceDate): ?\DateTime
+    {
+        if (self::isSinceDateEmpty($sinceDate)) {
+            return null;
+        } else {
+            assert(is_string($sinceDate));
+
+            return self::parseDateTime($sinceDate);
+        }
+    }
+
+    private static function parseDateTime(string $dateString): ?\DateTime
+    {
         try {
-            return new \DateTime($sinceDate);
-        } catch (\Exception $e) {
+            return new \DateTime($dateString);
+        } catch (\Throwable $e) {
             return null;
         }
     }

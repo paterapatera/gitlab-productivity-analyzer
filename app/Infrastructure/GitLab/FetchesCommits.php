@@ -21,6 +21,22 @@ trait FetchesCommits
     use HandlesGitLabApiRequests;
 
     /**
+     * 次のページが空かどうかをチェック
+     */
+    private static function isNextPageEmpty(?string $nextPage): bool
+    {
+        return empty($nextPage);
+    }
+
+    /**
+     * sinceDateが指定されているかどうかをチェック
+     */
+    private static function hasSinceDate(?\DateTime $sinceDate): bool
+    {
+        return $sinceDate !== null;
+    }
+
+    /**
      * GitLab APIからコミットを取得
      *
      * @param  ProjectId  $projectId  プロジェクトID
@@ -38,7 +54,7 @@ trait FetchesCommits
         do {
             $response = $this->fetchCommitsPage($projectId, $branchName, $page, $sinceDate);
 
-            if ($response->successful()) {
+            if (self::isResponseSuccessful($response)) {
                 /** @var array<int, array<string, mixed>> $commitDataArray */
                 $commitDataArray = $response->json();
                 $commits = collect($commitDataArray)
@@ -46,7 +62,7 @@ trait FetchesCommits
                 $allCommits = $allCommits->concat($commits);
 
                 $nextPage = $response->header('X-Next-Page');
-                if (empty($nextPage)) {
+                if (self::isNextPageEmpty($nextPage)) {
                     break;
                 }
                 $page = (int) $nextPage;
@@ -80,7 +96,8 @@ trait FetchesCommits
             'per_page' => 100,
         ];
 
-        if ($sinceDate !== null) {
+        if (self::hasSinceDate($sinceDate)) {
+            assert($sinceDate instanceof \DateTime);
             $params['since'] = $sinceDate->setTimezone(new \DateTimeZone('UTC'))->format('Y-m-d\TH:i:s\Z');
         }
 

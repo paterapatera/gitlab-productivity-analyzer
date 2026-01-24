@@ -42,9 +42,7 @@ class CollectCommits extends BaseService implements CollectCommitsInterface
         BranchName $branchName,
         ?\DateTime $sinceDate = null
     ): CollectCommitsResult {
-        $collectedCount = 0;
-
-        try {
+        return $this->executeWithOverallErrorHandling(function (&$collectedCount) use ($projectId, $branchName, $sinceDate) {
             // プロジェクト存在検証
             $project = $this->projectRepository->findByProjectId($projectId);
             if ($project === null) {
@@ -55,18 +53,7 @@ class CollectCommits extends BaseService implements CollectCommitsInterface
             $this->gitApi->validateBranch($projectId, $branchName);
 
             // sinceDateがnullの場合、収集履歴から最新日時を取得して自動判定
-            if ($sinceDate === null) {
-                try {
-                    $historyId = new CommitCollectionHistoryId($projectId, $branchName);
-                    $history = $this->commitCollectionHistoryRepository->findById($historyId);
-                    if ($history !== null) {
-                        $sinceDate = $history->latestCommittedDate->value;
-                    }
-                } catch (\Exception $e) {
-                    // エラーが発生した場合、フォールバック動作として全コミットを収集
-                    $sinceDate = null;
-                }
-            }
+            $sinceDate = $this->determineSinceDate($projectId, $branchName, $sinceDate);
 
             // コミット取得
             $commits = $this->gitApi->getCommits($projectId, $branchName, $sinceDate);
@@ -94,27 +81,57 @@ class CollectCommits extends BaseService implements CollectCommitsInterface
 
             // コミット保存完了後に集計処理を実行
             // エラー時はログに記録するのみで、CollectCommitsResultには影響を与えない
-            try {
-                $this->aggregateCommits->execute($projectId, $branchName);
-            } catch (\Exception $e) {
-                Log::error('集計処理でエラーが発生しました', [
-                    'project_id' => $projectId->value,
-                    'branch_name' => $branchName->value,
-                    'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString(),
-                ]);
-            }
+            $this->executeAggregationWithLogging($projectId, $branchName);
 
             return new CollectCommitsResult(
                 collectedCount: $collectedCount,
                 savedCount: $collectedCount,
                 hasErrors: false
             );
+        });
+    }
+
+    private function executeWithOverallErrorHandling(callable $callback): CollectCommitsResult
+    {
+        $collectedCount = 0;
+        try {
+            return $callback($collectedCount);
         } catch (GitLabApiException $e) {
             return $this->createErrorResult($e->getMessage());
         } catch (\Exception $e) {
             // コミット取得後のエラー（保存エラーなど）の場合、収集数は記録する
             return $this->createErrorResult($e->getMessage(), $collectedCount);
+        }
+    }
+
+    private function determineSinceDate(ProjectId $projectId, BranchName $branchName, ?\DateTime $sinceDate): ?\DateTime
+    {
+        if ($sinceDate !== null) {
+            return $sinceDate;
+        }
+
+        try {
+            $historyId = new CommitCollectionHistoryId($projectId, $branchName);
+            $history = $this->commitCollectionHistoryRepository->findById($historyId);
+
+            return $history?->latestCommittedDate->value;
+        } catch (\Exception $e) {
+            // エラーが発生した場合、フォールバック動作として全コミットを収集
+            return null;
+        }
+    }
+
+    private function executeAggregationWithLogging(ProjectId $projectId, BranchName $branchName): void
+    {
+        try {
+            $this->aggregateCommits->execute($projectId, $branchName);
+        } catch (\Exception $e) {
+            Log::error('集計処理でエラーが発生しました', [
+                'project_id' => $projectId->value,
+                'branch_name' => $branchName->value,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
         }
     }
 

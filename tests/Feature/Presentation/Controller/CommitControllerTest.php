@@ -22,14 +22,15 @@ describe('CommitController', function () {
             $response = $this->withoutVite()->get('/commits/collect');
 
             $response->assertStatus(200);
-            $response->assertInertia(fn (Assert $page) => $page
-                ->component('Commit/Index')
-                ->has('projects', 2)
-                ->where('projects.0.id', 1)
-                ->where('projects.0.name_with_namespace', 'group/project1')
-                ->where('projects.1.id', 2)
-                ->where('projects.1.name_with_namespace', 'group/project2')
-                ->where('result', null)
+            $response->assertInertia(
+                fn (Assert $page) => $page
+                    ->component('Commit/Index')
+                    ->has('projects', 2)
+                    ->where('projects.0.id', 1)
+                    ->where('projects.0.name_with_namespace', 'group/project1')
+                    ->where('projects.1.id', 2)
+                    ->where('projects.1.name_with_namespace', 'group/project2')
+                    ->where('result', null)
             );
         });
 
@@ -37,10 +38,11 @@ describe('CommitController', function () {
             $response = $this->withoutVite()->get('/commits/collect');
 
             $response->assertStatus(200);
-            $response->assertInertia(fn (Assert $page) => $page
-                ->component('Commit/Index')
-                ->has('projects', 0)
-                ->where('result', null)
+            $response->assertInertia(
+                fn (Assert $page) => $page
+                    ->component('Commit/Index')
+                    ->has('projects', 0)
+                    ->where('result', null)
             );
         });
 
@@ -50,9 +52,10 @@ describe('CommitController', function () {
                 ->get('/commits/collect');
 
             $response->assertStatus(200);
-            $response->assertInertia(fn (Assert $page) => $page
-                ->component('Commit/Index')
-                ->where('success', 'コミット収集が完了しました。')
+            $response->assertInertia(
+                fn (Assert $page) => $page
+                    ->component('Commit/Index')
+                    ->where('success', 'コミット収集が完了しました。')
             );
         });
 
@@ -134,7 +137,7 @@ describe('CommitController', function () {
 
             // sinceパラメータが送信されていることを確認
             Http::assertSent(function ($request) {
-                return str_contains($request->url(), 'since=2025-01-01');
+                return str_contains($request->url(), 'since=2025-01-01T00%3A00%3A00Z');
             });
         });
 
@@ -257,15 +260,16 @@ describe('CommitController', function () {
             $response = $this->withoutVite()->get('/commits/recollect');
 
             $response->assertStatus(200);
-            $response->assertInertia(fn (Assert $page) => $page
-                ->component('Commit/Recollect')
-                ->has('histories', 2)
-                ->where('histories.0.project_id', 1)
-                ->where('histories.0.project_name_with_namespace', 'group/project1')
-                ->where('histories.0.branch_name', 'main')
-                ->where('histories.1.project_id', 2)
-                ->where('histories.1.project_name_with_namespace', 'group/project2')
-                ->where('histories.1.branch_name', 'develop')
+            $response->assertInertia(
+                fn (Assert $page) => $page
+                    ->component('Commit/Recollect')
+                    ->has('histories', 2)
+                    ->where('histories.0.project_id', 1)
+                    ->where('histories.0.project_name_with_namespace', 'group/project1')
+                    ->where('histories.0.branch_name', 'main')
+                    ->where('histories.1.project_id', 2)
+                    ->where('histories.1.project_name_with_namespace', 'group/project2')
+                    ->where('histories.1.branch_name', 'develop')
             );
         });
 
@@ -273,9 +277,10 @@ describe('CommitController', function () {
             $response = $this->withoutVite()->get('/commits/recollect');
 
             $response->assertStatus(200);
-            $response->assertInertia(fn (Assert $page) => $page
-                ->component('Commit/Recollect')
-                ->has('histories', 0)
+            $response->assertInertia(
+                fn (Assert $page) => $page
+                    ->component('Commit/Recollect')
+                    ->has('histories', 0)
             );
         });
 
@@ -285,9 +290,10 @@ describe('CommitController', function () {
                 ->get('/commits/recollect');
 
             $response->assertStatus(200);
-            $response->assertInertia(fn (Assert $page) => $page
-                ->component('Commit/Recollect')
-                ->where('success', '再収集が完了しました。')
+            $response->assertInertia(
+                fn (Assert $page) => $page
+                    ->component('Commit/Recollect')
+                    ->where('success', '再収集が完了しました。')
             );
         });
 
@@ -452,5 +458,4 @@ describe('CommitController', function () {
             });
         });
     });
-
 });

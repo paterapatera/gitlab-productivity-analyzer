@@ -41,7 +41,7 @@ class AggregateCommits extends BaseService implements AggregateCommitsInterface
         ProjectId $projectId,
         BranchName $branchName
     ): AggregateCommitsResult {
-        try {
+        return $this->executeWithErrorHandling(function () use ($projectId, $branchName) {
             // 最終集計月を取得
             $latestAggregationMonth = $this->aggregationRepository->findLatestAggregationMonth(
                 $projectId,
@@ -101,6 +101,13 @@ class AggregateCommits extends BaseService implements AggregateCommitsInterface
                 aggregatedCount: $aggregations->count(),
                 hasErrors: false
             );
+        });
+    }
+
+    private function executeWithErrorHandling(callable $callback): AggregateCommitsResult
+    {
+        try {
+            return $callback();
         } catch (\Exception $e) {
             return new AggregateCommitsResult(
                 aggregatedCount: 0,

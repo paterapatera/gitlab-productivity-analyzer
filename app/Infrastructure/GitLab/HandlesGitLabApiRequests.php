@@ -16,6 +16,38 @@ use Illuminate\Support\Facades\Http;
 trait HandlesGitLabApiRequests
 {
     /**
+     * レスポンスが成功かどうかをチェック
+     */
+    private static function isResponseSuccessful(\Illuminate\Http\Client\Response $response): bool
+    {
+        return $response->successful();
+    }
+
+    /**
+     * レート制限されていないかどうかをチェック
+     */
+    private static function isNotRateLimited(\Illuminate\Http\Client\Response $response): bool
+    {
+        return $response->status() !== 429;
+    }
+
+    /**
+     * 認証エラーかどうかをチェック
+     */
+    private static function isAuthenticationError(\Illuminate\Http\Client\Response $response): bool
+    {
+        return $response->status() === 401;
+    }
+
+    /**
+     * APIエラーかどうかをチェック
+     */
+    private static function isApiError(\Illuminate\Http\Client\Response $response): bool
+    {
+        return ! $response->successful();
+    }
+
+    /**
      * GitLab APIへのHTTPリクエストを実行
      *
      * @param  string  $method  HTTPメソッド（get, post, put, deleteなど）
@@ -30,7 +62,7 @@ trait HandlesGitLabApiRequests
         $baseUrl = $this->getGitLabBaseUrl();
         $token = $this->getGitLabToken();
 
-        try {
+        return self::executeWithConnectionHandling(function () use ($baseUrl, $token, $method, $url, $params) {
             /** @var Response $response */
             $response = Http::withHeaders([
                 'PRIVATE-TOKEN' => $token,
@@ -39,6 +71,13 @@ trait HandlesGitLabApiRequests
             $this->checkAuthenticationError($response);
 
             return $response;
+        });
+    }
+
+    private static function executeWithConnectionHandling(callable $callback): Response
+    {
+        try {
+            return $callback();
         } catch (ConnectionException $e) {
             throw new GitLabApiException(
                 "GitLab API connection error: {$e->getMessage()}",
@@ -57,7 +96,7 @@ trait HandlesGitLabApiRequests
      */
     protected function handleRateLimit(Response $response, int $currentPage = 1): bool
     {
-        if ($response->status() !== 429) {
+        if (self::isNotRateLimited($response)) {
             return false;
         }
 
@@ -78,7 +117,7 @@ trait HandlesGitLabApiRequests
      */
     protected function checkAuthenticationError(Response $response): void
     {
-        if ($response->status() === 401) {
+        if (self::isAuthenticationError($response)) {
             throw new GitLabApiException('GitLab API authentication failed');
         }
     }
@@ -93,7 +132,7 @@ trait HandlesGitLabApiRequests
      */
     protected function checkApiError(Response $response, ?string $customMessage = null): void
     {
-        if (! $response->successful()) {
+        if (self::isApiError($response)) {
             $message = $customMessage ?? "GitLab API error: {$response->status()} - {$response->body()}";
             throw new GitLabApiException($message);
         }

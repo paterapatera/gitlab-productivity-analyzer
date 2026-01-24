@@ -22,6 +22,14 @@ class GitLabApiClient implements GitApi
     ) {}
 
     /**
+     * GitLab設定が無効かどうかをチェック
+     */
+    private static function isGitLabConfigInvalid(string $baseUrl, string $token): bool
+    {
+        return empty($baseUrl) || empty($token);
+    }
+
+    /**
      * 設定ファイルからGitLabApiClientインスタンスを作成
      */
     public static function fromConfig(): self
@@ -29,7 +37,7 @@ class GitLabApiClient implements GitApi
         $baseUrl = config('services.gitlab.base_url');
         $token = config('services.gitlab.token');
 
-        if (empty($baseUrl) || empty($token)) {
+        if (self::isGitLabConfigInvalid($baseUrl, $token)) {
             throw new GitLabApiException('GitLab API configuration is missing. Please set GITLAB_BASE_URL and GITLAB_TOKEN in your .env file.');
         }
 

@@ -30,7 +30,7 @@ trait FetchesProjects
         do {
             $response = $this->fetchProjectsPage($page);
 
-            if ($response->successful()) {
+            if (self::isResponseSuccessful($response)) {
                 /** @var array<int, array<string, mixed>> $projectDataArray */
                 $projectDataArray = $response->json();
                 $projects = collect($projectDataArray)

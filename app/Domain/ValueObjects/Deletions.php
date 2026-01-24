@@ -8,10 +8,15 @@ readonly class Deletions
 {
     use ComparesValue;
 
+    private static function isNegative(int $value): bool
+    {
+        return $value < 0;
+    }
+
     public function __construct(
         public int $value
     ) {
-        if ($this->value < 0) {
+        if (self::isNegative($this->value)) {
             throw new InvalidArgumentException('削除行数は0以上の整数である必要があります');
         }
     }

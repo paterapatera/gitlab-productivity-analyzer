@@ -11,6 +11,14 @@ trait FetchesBranches
     use HandlesGitLabApiRequests;
 
     /**
+     * ブランチが存在しないかどうかをチェック
+     */
+    private static function isBranchNotFound(\Illuminate\Http\Client\Response $response): bool
+    {
+        return $response->status() === 404;
+    }
+
+    /**
      * ブランチの存在を検証
      *
      * @param  ProjectId  $projectId  プロジェクトID
@@ -23,7 +31,7 @@ trait FetchesBranches
         $encodedBranchName = rawurlencode($branchName->value);
         $response = $this->makeGitLabRequest('get', "/api/v4/projects/{$projectId->value}/repository/branches/{$encodedBranchName}");
 
-        if ($response->status() === 404) {
+        if (self::isBranchNotFound($response)) {
             throw new GitLabApiException("Branch '{$branchName->value}' not found in project {$projectId->value}");
         }
 

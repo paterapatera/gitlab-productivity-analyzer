@@ -23,6 +23,38 @@ class UserProductivityShowResponse
     ) {}
 
     /**
+     * @param  array<string, array<int, mixed>>  &$userMonthData
+     */
+    private static function isUserMonthDataNotSet(array &$userMonthData, string $authorEmail): bool
+    {
+        return ! isset($userMonthData[$authorEmail]);
+    }
+
+    /**
+     * @param  array<string, array<int, mixed>>  &$userMonthData
+     */
+    private static function isMonthDataNotSet(array &$userMonthData, string $authorEmail, int $month): bool
+    {
+        return ! isset($userMonthData[$authorEmail][$month]);
+    }
+
+    /**
+     * @param  array<string, bool>  $emailSet
+     */
+    private static function isEmailInSet(array $emailSet, ?string $email): bool
+    {
+        return isset($emailSet[$email ?? '']);
+    }
+
+    /**
+     * @param  array<int, string>  $userNames
+     */
+    private static function isUserNameNotInArray(string $userName, array $userNames): bool
+    {
+        return ! in_array($userName, $userNames, true);
+    }
+
+    /**
      * Inertia.jsに渡すための配列に変換
      *
      * @return array<string, mixed>
@@ -89,12 +121,12 @@ class UserProductivityShowResponse
         foreach ($aggregations as $agg) {
             $authorEmail = $agg['author_email'];
 
-            if (! isset($userMonthData[$authorEmail])) {
+            if (self::isUserMonthDataNotSet($userMonthData, $authorEmail)) {
                 $userMonthData[$authorEmail] = [];
             }
 
             $month = $agg['month'];
-            if (! isset($userMonthData[$authorEmail][$month])) {
+            if (self::isMonthDataNotSet($userMonthData, $authorEmail, $month)) {
                 $userMonthData[$authorEmail][$month] = [
                     'additions' => 0,
                     'deletions' => 0,
@@ -150,12 +182,12 @@ class UserProductivityShowResponse
         foreach ($aggregations as $agg) {
             $authorEmail = $agg['author_email'];
 
-            if (! isset($userMonthData[$authorEmail])) {
+            if (self::isUserMonthDataNotSet($userMonthData, $authorEmail)) {
                 $userMonthData[$authorEmail] = [];
             }
 
             $month = $agg['month'];
-            if (! isset($userMonthData[$authorEmail][$month])) {
+            if (self::isMonthDataNotSet($userMonthData, $authorEmail, $month)) {
                 $userMonthData[$authorEmail][$month] = [
                     'additions' => 0,
                     'deletions' => 0,
@@ -206,9 +238,9 @@ class UserProductivityShowResponse
         // リポジトリで統合されたユーザー情報から、集計データに含まれるユーザーの名前を取得
         $userNames = [];
         foreach ($this->users as $user) {
-            if (isset($emailSet[$user->email->value ?? ''])) {
+            if (self::isEmailInSet($emailSet, $user->email->value)) {
                 $userName = $user->name->value ?: 'Unknown';
-                if (! in_array($userName, $userNames, true)) {
+                if (self::isUserNameNotInArray($userName, $userNames)) {
                     $userNames[] = $userName;
                 }
             }
